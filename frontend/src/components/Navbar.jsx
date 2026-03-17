@@ -57,7 +57,7 @@ export default function Navbar() {
           title="Toggle Theme"
           aria-label="Toggle Theme"
         >
-          {theme === "light" ? "🌙 Light" : "☀️ Dark"}
+          {theme === "light" ? "🌙 Dark" : "☀️ Light"}
         </button>
 
         {/* Simple Login Button */}

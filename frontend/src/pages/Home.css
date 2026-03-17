@@ -1,0 +1,74 @@
+.home{
+    max-width: 1050px;
+    margin: 0 auto;
+    padding: 40px 20px;
+}
+
+.headline{
+    margin-bottom: 8px;
+}
+
+.headPara{
+    color: #888;
+    margin-bottom: 32px;
+}
+
+.problems{
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 20px;
+}
+
+.problems_components{
+    background-color: var(--bg-card);
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    cursor: pointer;
+    border: 1px solid var(--border);
+    transition: transform 0.15s;
+}
+
+.problem_diff{
+    font-size: 13px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 20px;
+}
+
+.problem_tags{
+    font-size: 11px;
+    background-color: var(--bg-card);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 12px;
+    padding: 3px 8px;
+}
+
+.dot{
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 6px;
+    position: relative;
+    background: currentColor;
+    box-shadow: 0 0 6px currentColor;
+}
+
+.problem_title{
+    margin: 0 0 20px;
+    font-size: 16px;
+}
+
+.problem_tag{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.problem_box{
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+}
