@@ -1,0 +1,196 @@
+.nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    height: 65px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 60px;
+    background: var(--bg-card);
+    border-bottom: 1px solid var(--border);
+    box-shadow: 0 1px 8px rgba(0, 0, 0, 0.06);
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+}
+
+.logo {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: var(--accent);
+    color: #fff;
+    font-weight: 800;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.brandName {
+    font-weight: 500;
+    font-size: 15px;
+    color: var(--text);
+}
+
+.links {
+    display: flex;
+    gap: 4px;
+}
+
+.navBtn {
+    background: none;
+    border: none;
+    padding: 6px 14px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+}
+
+.navBtn:hover {
+    background: var(--border);
+    color: var(--text);
+}
+
+.navBtn.active {
+    background: var(--accent);
+    color: #fff;
+}
+
+.right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.themeBtn {
+    /* font-weight: 0; */
+    font-size: 14px;
+    padding: 6px 10px;
+}
+
+.profileWrap {
+    position: relative;
+}
+
+.profileBtn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 5px 12px;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.profileBtn:hover {
+    background: var(--border);
+}
+
+.avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.userName {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+}
+
+.caret {
+    font-size: 10px;
+    color: var(--text-muted);
+}
+
+.dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    width: 220px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+    overflow: hidden;
+    z-index: 200;
+}
+
+.dropHeader {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+}
+
+.dropAvatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #fff;
+    font-size: 14px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.dropName {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+}
+
+.dropEmail {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 2px;
+}
+
+.dropDivider {
+    height: 1px;
+    background: var(--border);
+}
+
+.dropItem {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 11px 16px;
+    background: none;
+    border: none;
+    font-size: 14px;
+    color: var(--text);
+    cursor: pointer;
+    text-align: left;
+    transition: background 0.12s;
+}
+
+.dropItem:hover {
+    background: var(--bg);
+}
+
+.dropDanger {
+    color: var(--danger);
+}
