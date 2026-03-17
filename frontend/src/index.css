@@ -5,14 +5,14 @@
     --text-muted: #6b7280;
     --text-faint: #9ca3af;
     --border: #e5e7eb;
-    --accent: #6366f1;
+    --accent: #7c6fff;
     --accent-hover: #4f46e5;
     --danger: #ef4444;
 }
 
 [data-theme="dark"] {
-    --bg: #0f0f1a;
-    --bg-card: #1c1c2e;
+    --bg: #0d0d0f;
+    --bg-card: #141416;
     --text: #f1f5f9;
     --text-muted: #94a3b8;
     --text-faint: #64748b;
