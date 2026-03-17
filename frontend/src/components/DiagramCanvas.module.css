@@ -1,0 +1,246 @@
+.wrap {
+    display: flex;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  /* Left panel */
+  .panel {
+    width: 130px;
+    flex-shrink: 0;
+    background: var(--bg-card);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    padding: 12px 8px;
+    overflow-y: auto;
+    gap: 6px;
+  }
+
+  .panelTitle {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--text-faint);
+    margin-bottom: 6px;
+    padding: 0 4px;
+  }
+
+  .panelList {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .panelItem {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 7px 8px;
+    border-radius: 8px;
+    cursor: pointer;
+    background: var(--item-bg, var(--bg));
+    border: 1.5px solid var(--item-border, var(--border));
+    transition: transform 0.1s, box-shadow 0.1s;
+  }
+
+  .panelItem:hover {
+    transform: translateX(2px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  }
+
+  .panelEmoji {
+    font-size: 16px;
+  }
+
+  .panelLabel {
+    font-size: 11px;
+    font-weight: 600;
+  }
+
+  .panelHint {
+    margin-top: auto;
+    font-size: 10px;
+    color: var(--text-faint);
+    line-height: 1.6;
+    padding: 8px 4px 0;
+    border-top: 1px solid var(--border);
+  }
+
+  /* Canvas area */
+  .canvasWrap {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 14px;
+    background: var(--bg-card);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  .canvas {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+    background: var(--bg);
+  }
+
+  .canvas.grid {
+    background-image:
+      linear-gradient(var(--border) 1px, transparent 1px),
+      linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size: 32px 32px;
+  }
+
+  /* Nodes */
+  .node {
+    position: absolute;
+    width: 110px;
+    min-height: 76px;
+    border-radius: 12px;
+    border: 2px solid transparent;
+    padding: 10px 8px 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    cursor: grab;
+    user-select: none;
+    z-index: 10;
+    transition: box-shadow 0.15s, border-color 0.15s;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+  }
+
+  .node:active {
+    cursor: grabbing;
+  }
+
+  .nodeSelected {
+    border-color: var(--node-border) !important;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--node-border) 30%, transparent);
+  }
+
+  .nodeConnecting {
+    border-color: var(--node-border) !important;
+    animation: pulse 1s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--node-border) 40%, transparent); }
+    50%       { box-shadow: 0 0 0 6px color-mix(in srgb, var(--node-border) 0%, transparent); }
+  }
+
+  .nodeEmoji {
+    font-size: 22px;
+    line-height: 1;
+  }
+
+  .nodeType {
+    font-size: 11px;
+    font-weight: 700;
+    text-align: center;
+  }
+
+  .nodeLabel {
+    font-size: 10px;
+    color: var(--text-muted);
+    text-align: center;
+    word-break: break-word;
+  }
+
+  .nodeLabelInput {
+    width: 90px;
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    background: var(--bg-card);
+    color: var(--text);
+    text-align: center;
+    outline: none;
+  }
+
+  .nodeActions {
+    display: flex;
+    gap: 3px;
+    margin-top: 4px;
+  }
+
+  .nodeBtn {
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--bg-card);
+    font-size: 11px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.1s;
+  }
+
+  .nodeBtn:hover {
+    background: var(--border);
+  }
+
+  .nodeBtnActive {
+    background: var(--accent) !important;
+    color: #fff;
+    border-color: var(--accent) !important;
+  }
+
+  .nodeBtnDanger:hover {
+    background: var(--danger) !important;
+    color: #fff;
+    border-color: var(--danger) !important;
+  }
+
+  /* Hints */
+  .connectingHint {
+    position: absolute;
+    top: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--accent);
+    color: #fff;
+    padding: 7px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 500;
+    z-index: 50;
+    pointer-events: none;
+    white-space: nowrap;
+  }
+
+  .emptyState {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    pointer-events: none;
+  }
+
+  /* Minimap */
+  .minimap {
+    position: absolute;
+    bottom: 16px;
+    right: 16px;
+    width: 140px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 8px 10px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+    z-index: 20;
+  }
