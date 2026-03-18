@@ -1,0 +1,71 @@
+.authContainer {
+    min-height: 100vh;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    background: #0D1117;
+    font-family: var(--font-main);
+}
+
+.leftPanel {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 48px;
+    background: #161B22;
+    border-right: 1px solid #2D3748;
+    position: relative;
+    overflow: hidden;
+}
+
+.gridBg {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image:
+        linear-gradient(rgba(59, 130, 246, 0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(59, 130, 246, 0.04) 1px, transparent 1px);
+    background-size: 48px 48px;
+    animation: moveGrid 20s linear infinite;
+}
+
+@keyframes moveGrid {
+    from {
+        transform: translate(0, 0);
+    }
+
+    to {
+        transform: translate(48px, 48px);
+    }
+}
+
+.rightPanel {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 48px;
+    background: #0D1117;
+    position: relative;
+}
+
+.glow {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 480px;
+    height: 480px;
+    background: radial-gradient(ellipse, rgba(37, 99, 235, 0.07), transparent 70%);
+    animation: pulseGlow 4s ease-in-out infinite;
+}
+
+@keyframes pulseGlow {
+
+    0%,
+    100% {
+        opacity: 0.5;
+    }
+
+    50% {
+        opacity: 1;
+    }
+}
