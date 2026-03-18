@@ -1,21 +1,80 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+
 .home{
-    max-width: 1050px;
+    max-width: 1250px;
     margin: 0 auto;
     padding: 40px 20px;
 }
 
+.homeTopMost{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.topmost{
+    margin-top: 20px;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    background: var(--accent-glow);
+    border: 1px solid rgba(37, 99, 235, 0.25);
+    border-radius: 20px;
+    padding: 6px 16px;
+    margin-bottom: 20px;
+    font-size: 13px;
+    color: var(--accent);
+    font-weight: 600;
+}
+
 .headline{
-    margin-bottom: 8px;
+    font-size: 46px;
+    font-weight: 700;
+    line-height: 1.12;
+}
+
+.headlineBack{
+    background: linear-gradient(135deg, var(--accent), var(--accent-hover));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-size: 46px;
+    font-weight: 700;
+    line-height: 1.12;
+    margin-bottom: 16px;
 }
 
 .headPara{
-    color: #888;
-    margin-bottom: 32px;
+    font-family: 'Inter', sans-serif;
+    color: #666;
+    font-size: 17px;
+    line-height: 1.6;
+    max-width: 520px;
+    margin: 0 auto 32px;
+    text-align: center;
+}
+
+.problemDiscription{
+    max-width: 1250px;
+    margin: 0 auto;
+    padding: 40px 20px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+    gap: 20px;
+}
+
+.designPbl{
+    border: 1px solid var(--border);
+    background-color: var(--bg-card);
+    border-radius: 15px;
+    padding: 20px 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 .problems{
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
     gap: 20px;
 }
 
@@ -29,11 +88,43 @@
     transition: transform 0.15s;
 }
 
+.problem_upper{
+    max-width: 100%;
+    display: flex;
+}
+
+.problemLeft{
+    margin-right: 15px;
+}
+
+.problemRight{
+    width: 100%;
+}
+
+.problemLogo{
+    display: flex;
+    font-size: 20px;
+    justify-content: center;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 12px 12px 12px;
+}
+
+.problem_box{
+    display: flex;
+    justify-content: space-between;
+}
+
 .problem_diff{
     font-size: 13px;
     font-weight: 700;
     padding: 3px 10px;
     border-radius: 20px;
+}
+
+.problemTime{
+    font-size: 12px;
+    color: #888;
 }
 
 .problem_tags{
@@ -65,10 +156,66 @@
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
+    margin-bottom: 20px;
 }
 
 .problem_box{
     display: flex;
     align-items: center;
     margin-bottom: 12px;
+}
+
+.problemSelect{
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    padding-left: 15px;
+}
+
+.chooseProblem{
+    font-size: 20px;
+    color: #888;
+}
+
+.problemCategory{
+    display: flex;
+    justify-content: space-between;
+    border: 1px solid var(--border);
+    padding: 8px 20px 8px 20px;
+    border-radius: 10px;
+    gap: 30px;
+    list-style: none;
+}
+
+.listTag{
+    border-radius: 10px;
+}
+
+.listTag.hover{
+    cursor: pointer;
+}
+
+.listTag.active {
+    background: var(--accent);
+    color: #fff;
+    padding: 2px 10px 2px 10px;
+}
+
+.designBtn{
+    display: flex;
+    justify-content: center;
+}
+
+.dbtn{
+    width: 100%;
+    background-color: #1d4ed8;
+    color: white;
+    border-radius: 7px;
+    border: none;
+    padding: 7px 10px 7px 10px;
+}
+
+.dbtn:hover{
+    box-shadow: 0 0 12px #3255b5;
+    transform: scale(1.01);
 }
