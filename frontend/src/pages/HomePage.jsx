@@ -29,6 +29,7 @@ export default function HomePage() {
     const filteredProblems = selectedDifficulty === "All" ? problems : problems.filter(p => p.difficulty === selectedDifficulty);
 
     return (
+        // Home Page Component
         <div className="home">
             <div className="homeTopMost">
                 <span className='topmost'>✨ AI-Powered System Design Practice</span>

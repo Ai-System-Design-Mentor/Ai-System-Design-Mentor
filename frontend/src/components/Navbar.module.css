@@ -120,6 +120,24 @@
     color: var(--text-muted);
 }
 
+.dropStats{
+    display: flex;
+    gap : 10px;
+    width: 100%;
+    justify-content: space-evenly;
+    padding: 10px 10px 10px 10px;
+}
+
+.dropStat{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    font-size: 14px;
+    font-weight: 500;
+    color: #888;
+}
+
 .dropdown {
     position: absolute;
     top: calc(100% + 8px);

@@ -6,13 +6,18 @@ const rateLimit  = require("express-rate-limit");
 const authRoutes    = require("./routes/auth");
 const userRoutes    = require("./routes/users");
 
-const app=express();
+const app = express();
 app.use(express.json({ limit: "3mb" }));
-
+app.use(cors({
+    origin: process.env.CLIENT_URL || "http://localhost:5173",
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true,
+}));
 app.use("/api/auth",     authRoutes);
 app.use("/api/users",    userRoutes);
+
 //console.log("URI:", process.env.MONGODB_URI);
-// connect to mongoDb 
+// connect to mongoDb
 mongoose
   .connect(process.env.MONGODB_URI)
   .then(() => {
