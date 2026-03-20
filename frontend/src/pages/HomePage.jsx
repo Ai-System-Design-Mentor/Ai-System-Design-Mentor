@@ -19,7 +19,7 @@ export default function HomePage() {
     ];
 
     const activity = [
-        { id: 1, title: "10+", dis: "Design Problem" },
+        { id: 1, title: `${problems.length}+`, dis: "Design Problem" },
         { id: 2, title: "AI", dis: "Powered Evaluation" },
         { id: 3, title: "Real-Time", dis: "Mentor Chat" },
     ];
