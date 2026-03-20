@@ -9,7 +9,7 @@
 .leftPanel {
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    justify-content: space-evenly;
     padding: 48px;
     background: #161B22;
     border-right: 1px solid #2D3748;

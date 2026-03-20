@@ -3,6 +3,7 @@ import Navbar          from "./components/Navbar";
 import HomePage        from "./pages/HomePage";
 import WorkspacePage   from "./pages/WorkspacePage";
 import Auth           from "./pages/AuthPage";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 export default function App() {
   return (
@@ -10,13 +11,13 @@ export default function App() {
       <Navbar />
       <Routes>
         {/* Protected */}
+        <Route path="/login" element={<Auth/>}/>
         <Route path="/" element={
-        <HomePage/>
+            <ProtectedRoute> <HomePage/></ProtectedRoute>
         } />
         <Route path="/workspace" element={
-            <WorkspacePage/>
+            <ProtectedRoute> <WorkspacePage/></ProtectedRoute>
         } />
-        <Route path="/login" element={<Auth/>}/>
 
         {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />
