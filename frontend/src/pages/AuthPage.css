@@ -2,17 +2,17 @@
     min-height: 100vh;
     display: grid;
     grid-template-columns: 1fr 1fr;
-    background: #0D1117;
+    background: var(--bg-card);
     font-family: var(--font-main);
 }
 
 .leftPanel {
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    justify-content: space-evenly;
     padding: 48px;
-    background: #161B22;
-    border-right: 1px solid #2D3748;
+    background: var(--bg-card);
+    border-right: 1px solid var(--border);
     position: relative;
     overflow: hidden;
 }
@@ -43,7 +43,7 @@
     align-items: center;
     justify-content: center;
     padding: 48px;
-    background: #0D1117;
+    background: var(--bg-card);
     position: relative;
 }
 
