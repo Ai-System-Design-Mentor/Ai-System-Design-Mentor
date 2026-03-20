@@ -174,12 +174,12 @@ export default function AuthPage() {
                         <div key={title} style={{
                             display: "flex", alignItems: "center", gap: 12,
                             padding: "12px 14px", borderRadius: 12,
-                            background: "rgba(255,255,255,0.04)",
-                            border: "1px solid rgba(255,255,255,0.07)",
+                            background: "var(--bg-card)",
+                            border: "1px solid var(--border)",
                         }}>
                             <div style={{ width: 34, height: 34, borderRadius: 9, background: bg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, flexShrink: 0 }}>{icon}</div>
                             <div>
-                                <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.9)", marginBottom: 2 }}>{title}</div>
+                                <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 2 }}>{title}</div>
                                 <div style={{ fontSize: 12, color: "#64748B" }}>{desc}</div>
                             </div>
                         </div>
@@ -196,7 +196,7 @@ export default function AuthPage() {
 
                     {/* Header */}
                     <div style={{ marginBottom: 28 }}>
-                        <h1 style={{ fontSize: 30, fontWeight: 800, color: "#F0F6FC", letterSpacing: "-0.8px", marginBottom: 8 }}>
+                        <h1 style={{ fontSize: 30, fontWeight: 800, color: "var(--text)", letterSpacing: "-0.8px", marginBottom: 8 }}>
                             {mode === "login" ? "Welcome back" : "Create account"}
                         </h1>
                         <p style={{ fontSize: 14, color: "#64748B" }}>
@@ -208,8 +208,8 @@ export default function AuthPage() {
 
                     {/* Mode switch */}
                     <div style={{
-                        display: "flex", background: "rgba(255,255,255,0.05)",
-                        border: "1px solid rgba(255,255,255,0.08)",
+                        display: "flex", background: "var(--bg-card)",
+                        border: "1px solid var(--border)",
                         borderRadius: 10, padding: 4, marginBottom: 24,
                     }}>
                         {["login", "register"].map((m) => (
@@ -286,11 +286,11 @@ export default function AuthPage() {
                             {/* Password strength */}
                             {mode === "register" && form.password && (
                                 <div style={{ marginTop: 6 }}>
-                                    <div style={{ height: 3, background: "rgba(255,255,255,0.08)", borderRadius: 2, overflow: "hidden" }}>
+                                    <div style={{ height: 3, background: "var(--bg-card)", borderRadius: 2, overflow: "hidden" }}>
                                         <div style={{
                                             height: "100%", borderRadius: 2,
                                             width: `${Math.min(pwStrength, 5) * 20}%`,
-                                            background: strength?.color || "#ef4444",
+                                            background: strength?.color || "var(--bg-card)",
                                             transition: "width 0.3s, background 0.3s",
                                         }} />
                                     </div>
@@ -332,9 +332,9 @@ export default function AuthPage() {
 
                     {/* Divider */}
                     <div style={{ display: "flex", alignItems: "center", gap: 12, margin: "20px 0" }}>
-                        <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.07)" }} />
+                        <div style={{ flex: 1, height: 1, background: "var(--border)" }} />
                         <span style={{ fontSize: 12, color: "#4B5563" }}>or continue with</span>
-                        <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.07)" }} />
+                        <div style={{ flex: 1, height: 1, background: "var(--border)" }} />
                     </div>
 
                     {/* OAuth */}
@@ -343,9 +343,9 @@ export default function AuthPage() {
                             <button key={label} style={{
                                 display: "flex", alignItems: "center", justifyContent: "center", gap: 9,
                                 padding: "11px", borderRadius: 10,
-                                border: "1.5px solid rgba(255,255,255,0.08)",
-                                background: "rgba(255,255,255,0.04)",
-                                color: "rgba(255,255,255,0.75)",
+                                border: "1.5px solid var(--border)",
+                                background: "var(--bg-card)",
+                                color: "var(--text)",
                                 fontFamily: "var(--font-main)", fontSize: 13, fontWeight: 500,
                                 cursor: "pointer", transition: "all 0.18s",
                             }}
@@ -409,8 +409,8 @@ function InputField({ label, icon, type, placeholder, value, onChange, rightEl }
                     onChange={onChange}
                     style={{
                         width: "100%",
-                        background: "rgba(255,255,255,0.05)",
-                        border: "1.5px solid rgba(255,255,255,0.08)",
+                        background: "var(--bg-card)",
+                        border: "1.5px solid var(--border)",
                         borderRadius: 10, color: "#F0F6FC",
                         fontFamily: "var(--font-main)",
                         fontSize: 14, padding: "12px 14px 12px 42px",
