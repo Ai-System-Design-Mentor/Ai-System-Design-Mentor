@@ -7,7 +7,8 @@ import { useNavigate } from 'react-router-dom';
 import { usersApi } from '../utils/Api';
 
 export default function Profile() {
-    const { user, logout, setUser } = useAuth();
+    const { user, logout, updateUser } = useAuth();
+    const [showPw, setShowPw] = useState(false);
     const navigate = useNavigate();
     const initials = user?.username ? user.username.slice(0, 2).toUpperCase() : "?";
 
@@ -16,19 +17,20 @@ export default function Profile() {
         "January", "February", "March", "April", "May", "June",
         "July", "August", "September", "October", "November", "December"
     ];
-    const formatted = `${months[date.getMonth()]} ${date.getFullYear()}`;
+    const formatted = date ? `${months[date.getMonth()]} ${date.getFullYear()}` : "-";
 
     const [username, setUsername] = React.useState(user?.username || "");
-    const [unMsg, setUnMsg] = useState(null);
+    const [unMsg, setUnMsg] = useState("");
     const [savingUn, setSavingUn] = useState(false);
 
     const [currentPassword, setCurrentPassword] = useState("");
     const [newPassword, setNewPassword] = useState("");
     const [confirmNewPassword, setConfirmNewPassword] = useState("");
-    const [psMsg, setPsMsg] = useState(null);
+    const [psMsg, setPsMsg] = useState("");
+    const [savingPs, setSavingPs] = useState(false);
 
     const handleUsernameUpdate = async () => {
-        if(!username.trim() || username.trim().length < 3){
+        if (!username.trim() || username.trim().length < 3) {
             setUnMsg("Username must be at least 3 length");
             return;
         }
@@ -37,8 +39,8 @@ export default function Profile() {
         setUnMsg("");
 
         try {
-            const {user: updated} = await usersApi.updateProfile(username.trim());
-            setUser(updated);
+            const { user: updated } = await usersApi.updateProfile(username.trim());
+            updateUser(updated);
             setUnMsg("Username updated successfully");
         } catch (error) {
             setUnMsg(error.message);
@@ -47,34 +49,34 @@ export default function Profile() {
     };
 
     const handlePasswordUpdate = async () => {
-        if(!currentPassword || !newPassword){
+        if (!currentPassword || !newPassword) {
             setPsMsg("Please fill in all password fields");
             return;
         }
 
-        if(newPassword.length < 6){
+        if (newPassword.length < 6) {
             setPsMsg("Password length must be greater than 6 length");
             return;
         }
 
-        if(newPassword != confirmNewPassword){
+        if (newPassword !== confirmNewPassword) {
             setPsMsg("Passwords do not match.");
             return;
         }
 
-        setSavingUn(true);
+        setSavingPs(true);
         setPsMsg("");
 
         try {
             await usersApi.updatePassword(currentPassword, newPassword);
-            setUnMsg("Password Update Successfully");
+            setPsMsg("Password Update Successfully");
             setCurrentPassword("");
             setConfirmNewPassword("");
             setNewPassword("");
         } catch (error) {
-            setUnMsg(error.message);
+            setPsMsg(error.message);
         }
-        setSavingUn(false);
+        setSavingPs(false);
     }
 
     function handleLogout() { logout(); navigate("./login"); }
@@ -118,21 +120,30 @@ export default function Profile() {
                 </div>
                 <div className="profile_password_change profile_border">
                     <h4 className='change_username'>🔐 Change Password</h4>
-                    <input
-                        type="password"
-                        placeholder="CurrentPassword"
-                        onChange={(e) => setCurrentPassword(e.target.value)}
-                    />
-                    <input
-                        type="password"
-                        placeholder="New Password"
-                        onChange={(e) => setNewPassword(e.target.value)}
-                    />
-                    <input
-                        type="password"
-                        placeholder="Confirm New Password"
-                        onChange={(e) => setConfirmNewPassword(e.target.value)}
-                    />
+                    {/* <div style={{ position: "relative"}}> */}
+                        <input
+                            type={showPw ? "text" : "password"}
+                            placeholder="Current Password"
+                            value={currentPassword}
+                            onChange={(e) => setCurrentPassword(e.target.value)}
+                        />
+                        <button type='button' onClick={() => setShowPw(s => !s)}
+                            className='showPassword'>
+                            {showPw ? "🙈" : "👁"}
+                        </button>
+                    {/* </div> */}
+                        <input
+                            type={showPw ? "text" : "password"}
+                            value={newPassword}
+                            placeholder="New Password"
+                            onChange={(e) => setNewPassword(e.target.value)}
+                        />
+                        <input
+                            type={showPw ? "text" : "password"}
+                            value={confirmNewPassword}
+                            placeholder="Confirm New Password"
+                            onChange={(e) => setConfirmNewPassword(e.target.value)}
+                        />
                     <span className='message'>{psMsg}</span>
                     <button onClick={handlePasswordUpdate} className='updatebutton'>Update Password</button>
                 </div>
@@ -163,3 +174,21 @@ export default function Profile() {
         </div>
     )
 };
+
+function InputField(rightEl) {
+    <div style={{ position: "relative" }}>
+        <span style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", fontSize: 15, opacity: 0.4, pointerEvents: "none" }}>
+            {icon}
+        </span>
+        <input
+            type={type}
+            placeholder={placeholder}
+            value={value}
+            onChange={onChange}
+            style={{ width: "100%", background: "var(--bg-card)", border: "1.5px solid var(--border)", borderRadius: 10, color: "var(--text)", fontFamily: "var(--font-main)", fontSize: 14, padding: "12px 14px 12px 42px", outline: "none", transition: "all 0.2s" }}
+            onFocus={e => { e.target.style.borderColor = "#2563EB"; e.target.style.background = "rgba(37,99,235,0.08)"; e.target.style.boxShadow = "0 0 0 3px rgba(37,99,235,0.12)"; }}
+            onBlur={e => { e.target.style.borderColor = "var(--border)"; e.target.style.background = "var(--bg-card)"; e.target.style.boxShadow = "none"; }}
+        />
+        {rightEl}
+    </div>
+}
