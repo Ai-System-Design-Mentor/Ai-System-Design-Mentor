@@ -8,6 +8,7 @@
     --accent: #7c6fff;
     --accent-hover: #4f46e5;
     --danger: #ef4444;
+    --bg-box: #f1f5f9;
 }
 
 [data-theme="dark"] {
@@ -20,6 +21,7 @@
     --accent: #818cf8;
     --accent-hover: #6366f1;
     --danger: #f87171;
+    --bg-box: #1c2230;
 }
 
 * {

@@ -45,7 +45,7 @@ export default function Navbar() {
             {/* Brand */}
             <div className={styles.brand} onClick={() => navigate("/")}>
                 <div className={styles.logo}>A</div>
-                <span className={styles.brandName}>AI System Design</span>
+                <span className={styles.brandName}>AI System Design Mentor</span>
             </div>
 
             {/* Nav Links */}
