@@ -5,6 +5,7 @@ import WorkspacePage from "./pages/WorkspacePage";
 import Auth from "./pages/AuthPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 import useAutoLogout from "./context/AutoLogOut";
+import Profile from "./pages/ProfilePage";
 
 export default function App() {
     const naviagte = useNavigate();
@@ -25,6 +26,9 @@ export default function App() {
                 } />
                 <Route path="/workspace" element={
                     <ProtectedRoute> <WorkspacePage /></ProtectedRoute>
+                } />
+                <Route path="/profile" element={
+                    <ProtectedRoute> <Profile /></ProtectedRoute>
                 } />
 
                 {/* Fallback */}
