@@ -2,13 +2,13 @@ const User    = require("../models/User");
 const Attempt = require("../models/Attempt");
 
 // GET /api/users/profile
-exports.getProfile = async (req, res) => { // fetch user details 
+exports.getProfile = async (req, res) => { // fetch user details
   try {
     const user = await User.findById(req.user._id);
     const attempts = await Attempt.find({ user: req.user._id, status: "evaluated" })
       .sort({ createdAt: 1 }) // sort in ascending order of creation time (oldest first)
       .limit(20)
-      .select("score problemTitle createdAt timeTaken weakAreas"); // select only this field from the attempt list 
+      .select("score problemTitle createdAt timeTaken weakAreas"); // select only this field from the attempt list
 
     res.json({
       user: {
@@ -27,7 +27,7 @@ exports.getProfile = async (req, res) => { // fetch user details
   }
 };
 
-// PATCH /api/users/profile 
+// PATCH /api/users/profile
 exports.updateProfile = async (req, res) => {  // — update username
   try {
     const { username } = req.body;
@@ -35,7 +35,7 @@ exports.updateProfile = async (req, res) => {  // — update username
       return res.status(400).json({ error: "Username must be at least 3 characters." });
     }
 
-    const taken = await User.findOne({ username: username.trim(), _id: { $ne: req.user._id } }); // do not match with any other username that already present 
+    const taken = await User.findOne({ username: username.trim(), _id: { $ne: req.user._id } }); // do not match with any other username that already present
     if (taken) return res.status(400).json({ error: "Username already taken." });
 
     const user = await User.findByIdAndUpdate(
@@ -54,7 +54,7 @@ exports.updateProfile = async (req, res) => {  // — update username
 };
 
 // PATCH /api/users/password
-exports.updatePassword = async (req, res) => { // for updating the password  
+exports.updatePassword = async (req, res) => { // for updating the password
   try {
     const { currentPassword, newPassword } = req.body;
     if (!currentPassword || !newPassword) {

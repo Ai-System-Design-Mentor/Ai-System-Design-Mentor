@@ -15,6 +15,22 @@ export const usersApi = {
   updatePassword: (currentPassword, newPassword) => patch("/users/password", { currentPassword, newPassword }),
 };
 
+export const authApi = {
+    login:    (email, password)              => post("/auth/login",    { email, password }),
+    register: (username, email, password)    => post("/auth/register", { username, email, password }),
+
+    forgotPassword: (email, currentPassword, newPassword) =>
+      fetch(`${BASE}/auth/forgot-password`, {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify({ email, currentPassword, newPassword }),
+      }).then(async (res) => {
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Request failed");
+        return data;
+      }),
+  };
+
 async function post(path, body) {
   const res  = await fetch(`${BASE}${path}`, {
     method:  "POST",
