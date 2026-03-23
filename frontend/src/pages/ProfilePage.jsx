@@ -120,30 +120,31 @@ export default function Profile() {
                 </div>
                 <div className="profile_password_change profile_border">
                     <h4 className='change_username'>🔐 Change Password</h4>
-                    {/* <div style={{ position: "relative"}}> */}
+                    <div className="inputWrapper">
                         <input
                             type={showPw ? "text" : "password"}
                             placeholder="Current Password"
                             value={currentPassword}
                             onChange={(e) => setCurrentPassword(e.target.value)}
+                            className="passwordInput"
                         />
                         <button type='button' onClick={() => setShowPw(s => !s)}
-                            className='showPassword'>
+                            className='eyeBtn'>
                             {showPw ? "🙈" : "👁"}
                         </button>
-                    {/* </div> */}
-                        <input
-                            type={showPw ? "text" : "password"}
-                            value={newPassword}
-                            placeholder="New Password"
-                            onChange={(e) => setNewPassword(e.target.value)}
-                        />
-                        <input
-                            type={showPw ? "text" : "password"}
-                            value={confirmNewPassword}
-                            placeholder="Confirm New Password"
-                            onChange={(e) => setConfirmNewPassword(e.target.value)}
-                        />
+                    </div>
+                    <input
+                        type={showPw ? "text" : "password"}
+                        value={newPassword}
+                        placeholder="New Password"
+                        onChange={(e) => setNewPassword(e.target.value)}
+                    />
+                    <input
+                        type={showPw ? "text" : "password"}
+                        value={confirmNewPassword}
+                        placeholder="Confirm New Password"
+                        onChange={(e) => setConfirmNewPassword(e.target.value)}
+                    />
                     <span className='message'>{psMsg}</span>
                     <button onClick={handlePasswordUpdate} className='updatebutton'>Update Password</button>
                 </div>

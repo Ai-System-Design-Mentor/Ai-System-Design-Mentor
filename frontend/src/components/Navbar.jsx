@@ -8,6 +8,7 @@ import "../index.css";
 const NAV_LINKS = [
     { path: "/", label: "Home" },
     { path: "/workspace", label: "Workspace" },
+    { path: "/dashboard", label: "DashBoard" },
 ];
 
 export default function Navbar() {
