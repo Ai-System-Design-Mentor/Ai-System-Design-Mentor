@@ -30,7 +30,7 @@ export default function ProblemCard({ problem }) {
                 </div>
                 <div className="problemRight">
                     <div className='problem_box'>
-                        <span className={`badge ${colors}`} style={{ fontSize: 12, color: `rgba(${colors}`, fontWeight: 700 }}>{problem.difficulty}</span>
+                        <span className={`badge ${colors}`} style={{ fontSize: 12, background: `rgba(${colors}, 0.2)`, color: `rgba(${colors})`, paddingLeft: 10, paddingRight: 10, paddingTop:3, paddingBottom: 3, borderRadius:7, fontWeight: 700 }}>{problem.difficulty}</span>
                         <span className='problemTime'>⏱ {problem.time} min</span>
                     </div>
                     <h3 className='problemTitle' >{problem.title}</h3>

@@ -11,7 +11,7 @@
     padding: 9px 18px;
     display: flex;
     align-items: center;
-    gap: 12;
+    gap: 18px;
     flex-shrink: 0;
 }
 
@@ -30,4 +30,31 @@
     font-weight: 700;
     font-size: 16px;
     color: var(--text-muted);
+}
+
+.workspace_ptitle{
+    font-weight: 700;
+}
+
+.workspaceTimer{
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    background-color: var(--bg-box);
+    border-radius: 7px;
+    padding: 5px 12px;
+}
+
+.timer{
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.timerCheck{
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text);
+    font-size: 14px;
+    padding: 2px 4px;
 }
