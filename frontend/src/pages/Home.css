@@ -104,8 +104,9 @@
 .problemLogo{
     display: flex;
     font-size: 20px;
+    width: 44;
+    height: 44;
     justify-content: center;
-    border: 1px solid var(--border);
     border-radius: 8px;
     padding: 12px 12px 12px 12px;
 }
@@ -147,7 +148,7 @@
     box-shadow: 0 0 6px currentColor;
 }
 
-.problem_title{
+.problemTitle{
     margin: 0 0 20px;
     font-size: 16px;
 }

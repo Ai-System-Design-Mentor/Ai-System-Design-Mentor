@@ -27,14 +27,14 @@ export default function Dashboard() {
         ? `${linePath} L${tx(chartData.length - 1)},${H - P} L${tx(0)},${H - P} Z`
         : "";
 
-    if (loading) return (
-        <div style={{ height: "70vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <div style={{ textAlign: "center" }}>
-                <span className="spin" style={{ fontSize: 38, display: "block", marginBottom: 14 }}>⚙️</span>
-                <p style={{ color: "var(--text-muted)" }}>Loading dashboard…</p>
-            </div>
-        </div>
-    );
+    // if (loading) return (
+    //     <div style={{ height: "70vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
+    //         <div style={{ textAlign: "center" }}>
+    //             <span className="spin" style={{ fontSize: 38, display: "block", marginBottom: 14 }}>⚙️</span>
+    //             <p style={{ color: "var(--text-muted)" }}>Loading dashboard…</p>
+    //         </div>
+    //     </div>
+    // );
 
     return (
         <div className="dashboard">
