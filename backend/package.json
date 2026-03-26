@@ -1,6 +1,6 @@
 {
   "name": "backend",
- "version": "1.0.0",
+  "version": "1.0.0",
   "description": "Backend for AI System Design Mentor",
   "main": "server.js",
   "scripts": {
@@ -13,6 +13,7 @@
   "type": "commonjs",
   "dependencies": {
     "@anthropic-ai/sdk": "^0.20.0",
+    "@google/genai": "^1.46.0",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
