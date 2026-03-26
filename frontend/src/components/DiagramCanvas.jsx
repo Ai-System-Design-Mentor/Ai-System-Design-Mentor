@@ -24,7 +24,7 @@ export default function DiagramCanvas({ onDiagramChange }) {
     const [tool, setTool] = useState("select");
     const [selected, setSelected] = useState(new Set());
     const [connecting, setConn] = useState(null);
-    const [dragging, setDrag] = useState(null);  // { id, ox, oy }
+    const [dragging, setDrag] = useState(null);
     const [pan, setPan] = useState({ x: 60, y: 40 });
     const [zoom, setZoom] = useState(1);
     const [isPanning, setIsPan] = useState(false);
@@ -37,45 +37,80 @@ export default function DiagramCanvas({ onDiagramChange }) {
     const [hIdx, setHIdx] = useState(0);
     const canvasRef = useRef(null);
 
+    // ── Refs to avoid stale closures in event listeners
+    const nodesRef = useRef(nodes);
+    const edgesRef = useRef(edges);
+    const selectedRef = useRef(selected);
+    const hIdxRef = useRef(hIdx);
+    const historyRef = useRef(history);
+
+    useEffect(() => { nodesRef.current = nodes; }, [nodes]);
+    useEffect(() => { edgesRef.current = edges; }, [edges]);
+    useEffect(() => { selectedRef.current = selected; }, [selected]);
+    useEffect(() => { hIdxRef.current = hIdx; }, [hIdx]);
+    useEffect(() => { historyRef.current = history; }, [history]);
+
     // Notify parent whenever diagram changes
     useEffect(() => { onDiagramChange?.({ nodes, edges }); }, [nodes, edges]);
 
-    // ── History helpers ────────────────────────────────────────────────────────
+    // History helpers
     const commit = useCallback((ns, es) => {
-        setHistory((h) => [...h.slice(0, hIdx + 1), { nodes: ns, edges: es }]);
-        setHIdx((i) => i + 1);
-    }, [hIdx]);
+        const idx = hIdxRef.current;
+        setHistory((h) => [...h.slice(0, idx + 1), { nodes: ns, edges: es }]);
+        setHIdx(idx + 1);
+    }, []);
 
     function undo() {
-        if (hIdx <= 0) return;
-        const p = history[hIdx - 1];
-        setNodes(p.nodes); setEdges(p.edges); setHIdx((i) => i - 1);
-    }
-    function redo() {
-        if (hIdx >= history.length - 1) return;
-        const n = history[hIdx + 1];
-        setNodes(n.nodes); setEdges(n.edges); setHIdx((i) => i + 1);
+        const idx = hIdxRef.current;
+        const hist = historyRef.current;
+        if (idx <= 0) return;
+        const p = hist[idx - 1];
+        setNodes(p.nodes);
+        setEdges(p.edges);
+        setHIdx(idx - 1);
     }
 
-    // ── Keyboard shortcuts ─────────────────────────────────────────────────────
+    function redo() {
+        const idx = hIdxRef.current;
+        const hist = historyRef.current;
+        if (idx >= hist.length - 1) return;
+        const n = hist[idx + 1];
+        setNodes(n.nodes);
+        setEdges(n.edges);
+        setHIdx(idx + 1);
+    }
+
+    // Keyboard shortcuts
     useEffect(() => {
         function onKey(e) {
             if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") return;
-            if ((e.ctrlKey || e.metaKey) && e.key === "z") { e.preventDefault(); undo(); }
-            if ((e.ctrlKey || e.metaKey) && e.key === "y") { e.preventDefault(); redo(); }
-            if (e.key === "Delete" || e.key === "Backspace") deleteSelected();
-            if (e.key === "Escape") { setConn(null); setSelected(new Set()); setEditId(null); }
-            if (e.key === "v") setTool("select");
-            if (e.key === "c") setTool("connect");
-            if (e.key === "d") setTool("delete");
-            if (e.key === "t") setTool("label");
-            if (e.key === " ") { e.preventDefault(); setTool("pan"); }
+
+            if ((e.ctrlKey || e.metaKey) && e.key === "z") { e.preventDefault(); undo(); return; }
+            if ((e.ctrlKey || e.metaKey) && e.key === "y") { e.preventDefault(); redo(); return; }
+
+            if (e.key === "Delete" || e.key === "Backspace") {
+                const sel = selectedRef.current;
+                const ns_ = nodesRef.current;
+                const es_ = edgesRef.current;
+                if (!sel.size) return;
+                const ids = [...sel];
+                const ns = ns_.filter((n) => !ids.includes(n.id));
+                const es = es_.filter((ed) => !ids.includes(ed.from) && !ids.includes(ed.to));
+                setNodes(ns); setEdges(es); commit(ns, es); setSelected(new Set());
+                return;
+            }
+            if (e.key === "Escape") { setConn(null); setSelected(new Set()); setEditId(null); return; }
+            if (e.key === "v") { setTool("select"); return; }
+            if (e.key === "c") { setTool("connect"); return; }
+            if (e.key === "d") { setTool("delete"); return; }
+            if (e.key === "t") { setTool("label"); return; }
+            if (e.key === " ") { e.preventDefault(); setTool("pan"); return; }
         }
         window.addEventListener("keydown", onKey);
         return () => window.removeEventListener("keydown", onKey);
-    }, [selected, hIdx, history]);
+    }, []);
 
-    // ── Add node from panel ────────────────────────────────────────────────────
+    // Add node
     function addNode(comp) {
         const style = getNodeStyle(comp.type, theme);
         const node = {
@@ -92,7 +127,7 @@ export default function DiagramCanvas({ onDiagramChange }) {
         commit(ns, edges);
     }
 
-    // ── Mouse events on canvas ─────────────────────────────────────────────────
+    // ── Canvas mouse events ───────────────────────────────────────────────────
     function onCanvasDown(e) {
         if (e.button === 1 || tool === "pan" || (e.button === 0 && e.altKey)) {
             e.preventDefault();
@@ -125,10 +160,15 @@ export default function DiagramCanvas({ onDiagramChange }) {
     }
 
     function onCanvasUp() {
-        if (dragging) commit(nodes, edges);
+        if (dragging) commit(nodesRef.current, edgesRef.current);
         setIsPan(false);
         setPanAnchor(null);
         setDrag(null);
+    }
+
+    function onCanvasLeave() {
+        setIsPan(false);
+        setPanAnchor(null);
     }
 
     function onWheel(e) {
@@ -136,7 +176,7 @@ export default function DiagramCanvas({ onDiagramChange }) {
         setZoom((z) => Math.max(0.25, Math.min(3, z * (e.deltaY < 0 ? 1.1 : 0.91))));
     }
 
-    // ── Node mouse events ──────────────────────────────────────────────────────
+    // Node mouse events
     function onNodeDown(e, id) {
         if (e.button !== 0) return;
         e.stopPropagation();
@@ -163,6 +203,7 @@ export default function DiagramCanvas({ onDiagramChange }) {
             setConn(null);
             return;
         }
+
         // select / drag
         const rect = canvasRef.current.getBoundingClientRect();
         const mx = (e.clientX - rect.left - pan.x) / zoom;
@@ -170,25 +211,30 @@ export default function DiagramCanvas({ onDiagramChange }) {
         const node = nodes.find((n) => n.id === id);
         setDrag({ id, ox: mx - node.x, oy: my - node.y });
         setSelected(e.shiftKey
-            ? (s) => { const next = new Set(s); next.has(id) ? next.delete(id) : next.add(id); return next; }
+            ? (s) => {
+                const next = new Set(s);
+                next.has(id) ? next.delete(id) : next.add(id);
+                return next;
+            }
             : new Set([id])
         );
     }
 
-    // ── Label editing ──────────────────────────────────────────────────────────
+    // ── Label editing ─────────────────────────────────────────────────────────
     function beginEdit(id) {
         const n = nodes.find((x) => x.id === id);
         if (!n) return;
         setEditId(id);
         setEditText(n.label || "");
     }
+
     function saveEdit() {
         if (!editId) return;
         const ns = nodes.map((n) => n.id === editId ? { ...n, label: editText } : n);
         setNodes(ns); commit(ns, edges); setEditId(null);
     }
 
-    // ── Delete selected ────────────────────────────────────────────────────────
+    // ── Delete selected ───────────────────────────────────────────────────────
     function deleteSelected() {
         if (!selected.size) return;
         const ids = [...selected];
@@ -222,15 +268,15 @@ export default function DiagramCanvas({ onDiagramChange }) {
 
     function fitView() {
         if (!nodes.length) return;
-        const xs = nodes.map((n) => n.x), ys = nodes.map((n) => n.y);
+        const xs = nodes.map((n) => n.x);
+        const ys = nodes.map((n) => n.y);
         setPan({ x: -Math.min(...xs) + 60, y: -Math.min(...ys) + 60 });
         setZoom(1);
     }
 
-    // ── Edge geometry helpers ──────────────────────────────────────────────────
+    // ── Edge geometry ─────────────────────────────────────────────────────────
     function center(node) { return { x: node.x + 59, y: node.y + 40 }; }
 
-    // ── Cursor ────────────────────────────────────────────────────────────────
     const cursor =
         isPanning || tool === "pan" ? "grabbing" :
             tool === "connect" ? "crosshair" :
@@ -239,44 +285,50 @@ export default function DiagramCanvas({ onDiagramChange }) {
 
     return (
         <div className={s.wrap}>
-            {/* ── Left component panel ──────────────────────────── */}
+
+            {/* ── Left panel ──────────────────────────────────── */}
             <div className={s.panel}>
                 <div className={s.panelTitle}>Components</div>
                 <div className={s.panelList}>
                     {DIAGRAM_COMPONENTS.map((c) => {
                         const style = getNodeStyle(c.type, theme);
                         return (
-                            <div key={c.type} className={s.panelItem}
+                            <div
+                                key={c.type}
+                                className={s.panelItem}
                                 style={{ "--ib": style.border }}
                                 onClick={() => addNode(c)}
-                                title={`Add ${c.type}`}>
+                                title={`Add ${c.type}`}
+                            >
                                 <span className={s.panelEmoji}>{c.emoji}</span>
-                                <span className={s.panelLabel} style={{ color: style.color }}>{c.type}</span>
+                                <span className={s.panelLabel} style={{ color: style.color }}>
+                                    {c.type}
+                                </span>
                             </div>
                         );
                     })}
                 </div>
                 <div className={s.hint}>
-                    <strong>Shortcuts</strong><br />
-                    V Select · C Connect<br />
-                    T Label · D Delete<br />
-                    Space Pan · Del Remove<br />
+                    Click to add<br />
+                    Drag to Move<br />
+                    🔗 Connect<br />
                     Ctrl+Z Undo · Ctrl+Y Redo<br />
-                    Scroll Zoom · Alt+Drag Pan
                 </div>
             </div>
 
-            {/* ── Canvas area ───────────────────────────────────── */}
+            {/* ── Canvas area ─────────────────────────────────── */}
             <div className={s.canvasWrap}>
+
                 {/* Toolbar */}
                 <div className={s.toolbar}>
-                    {/* Draw tools */}
                     <div className={s.toolGroup}>
                         {TOOLS.map((t) => (
-                            <button key={t.id}
+                            <button
+                                key={t.id}
                                 className={`${s.toolBtn} ${tool === t.id ? s.toolActive : ""}`}
                                 onClick={() => setTool(t.id)}
-                                title={`${t.label} (${t.id === "select" ? "V" : t.id === "connect" ? "C" : t.id === "label" ? "T" : t.id === "delete" ? "D" : "Space"})`}>
+                                title={t.label}
+                            >
                                 <span style={{ fontSize: 13 }}>{t.icon}</span>
                                 <span style={{ fontSize: 9 }}>{t.label}</span>
                             </button>
@@ -285,76 +337,88 @@ export default function DiagramCanvas({ onDiagramChange }) {
 
                     <div className={s.sep} />
 
-                    {/* Edit actions */}
                     <div className={s.toolGroup}>
-                        <button className={s.toolBtn} onClick={undo} disabled={hIdx <= 0} title="Undo (Ctrl+Z)">↩</button>
-                        <button className={s.toolBtn} onClick={redo} disabled={hIdx >= history.length - 1} title="Redo (Ctrl+Y)">↪</button>
-                        <button className={s.toolBtn} onClick={duplicateSelected} disabled={!selected.size} title="Duplicate">⧉</button>
-                        <button className={`${s.toolBtn} ${s.toolDanger}`} onClick={deleteSelected} disabled={!selected.size} title="Delete selected">🗑</button>
+                        <button className={s.toolBtn} onClick={undo}
+                            disabled={hIdx <= 0} title="Undo (Ctrl+Z)">↩</button>
+                        <button className={s.toolBtn} onClick={redo}
+                            disabled={hIdx >= history.length - 1} title="Redo (Ctrl+Y)">↪</button>
+                        <button className={s.toolBtn} onClick={duplicateSelected}
+                            disabled={!selected.size} title="Duplicate">⧉</button>
+                        <button className={`${s.toolBtn} ${s.toolDanger}`}
+                            onClick={deleteSelected} disabled={!selected.size}
+                            title="Delete selected">🗑</button>
                     </div>
 
                     <div className={s.sep} />
 
-                    {/* View controls */}
                     <div className={s.toolGroup}>
-                        <button className={`${s.toolBtn} ${showGrid ? s.toolActive : ""}`} onClick={() => setShowGrid((g) => !g)} title="Toggle grid">▦</button>
-                        <button className={`${s.toolBtn} ${snapOn ? s.toolActive : ""}`} onClick={() => setSnapOn((g) => !g)} title="Toggle snap">⊞</button>
+                        <button className={`${s.toolBtn} ${showGrid ? s.toolActive : ""}`}
+                            onClick={() => setShowGrid((g) => !g)} title="Toggle grid">▦</button>
+                        <button className={`${s.toolBtn} ${snapOn ? s.toolActive : ""}`}
+                            onClick={() => setSnapOn((g) => !g)} title="Toggle snap">⊞</button>
                         <button className={s.toolBtn} onClick={fitView} title="Fit view">⊡</button>
-                        <button className={s.toolBtn} onClick={() => setZoom((z) => Math.min(3, +(z + 0.15).toFixed(2)))} title="Zoom in">+</button>
+                        <button className={s.toolBtn}
+                            onClick={() => setZoom((z) => Math.min(3, +(z + 0.15).toFixed(2)))}
+                            title="Zoom in">+</button>
                         <span className={s.zoomVal}>{Math.round(zoom * 100)}%</span>
-                        <button className={s.toolBtn} onClick={() => setZoom((z) => Math.max(0.25, +(z - 0.15).toFixed(2)))} title="Zoom out">−</button>
+                        <button className={s.toolBtn}
+                            onClick={() => setZoom((z) => Math.max(0.25, +(z - 0.15).toFixed(2)))}
+                            title="Zoom out">−</button>
                     </div>
 
                     <div style={{ flex: 1 }} />
                     <span style={{ fontSize: 11, color: "var(--text-faint)", padding: "0 8px" }}>
                         {nodes.length} nodes · {edges.length} edges
                     </span>
-                    <button className={`${s.toolBtn} ${s.toolDanger}`} onClick={clearAll}>Clear</button>
+                    <button className={`${s.toolBtn} ${s.toolDanger}`} onClick={clearAll}>
+                        Clear
+                    </button>
                 </div>
 
-                {/* The canvas itself */}
-                <div ref={canvasRef}
+                {/* Canvas */}
+                <div
+                    ref={canvasRef}
                     className={`${s.canvas} ${showGrid ? s.grid : ""}`}
                     style={{ cursor }}
                     onMouseDown={onCanvasDown}
                     onMouseMove={onCanvasMove}
                     onMouseUp={onCanvasUp}
-                    onMouseLeave={onCanvasUp}
-                    onWheel={onWheel}>
-
-                    {/* Connecting hint banner */}
+                    onMouseLeave={onCanvasLeave}
+                    onWheel={onWheel}
+                >
                     {connecting && (
-                        <div className={s.connHint} style={{ color: "var(--text-muted)"}}>
-                            🔗 Click the TARGET node to draw a connection — Esc to cancel
+                        <div className={s.connHint}>
+                            🔗 Click the TARGET node — Esc to cancel
                         </div>
                     )}
 
-                    {/* Empty state */}
                     {nodes.length === 0 && (
                         <div className={s.empty}>
                             <div style={{ fontSize: 56, opacity: 0.2, marginBottom: 14 }}>🏗️</div>
-                            <div style={{ fontSize: 15, fontWeight: 600, color: "var(--text-faint)" }}>Click components on the left to start</div>
+                            <div style={{ fontSize: 15, fontWeight: 600, color: "var(--text-faint)" }}>
+                                Click components on the left to start
+                            </div>
                             <div style={{ fontSize: 12, color: "var(--text-faint)", marginTop: 5 }}>
-                                Use the Connect tool (C) to draw arrows between nodes
+                                Use Connect tool (C) to draw arrows between nodes
                             </div>
                         </div>
                     )}
 
-                    {/* Transformed viewport */}
                     <div style={{
                         transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
                         transformOrigin: "0 0",
                         position: "absolute", top: 0, left: 0,
                         width: "10000px", height: "10000px",
                     }}>
-                        {/* SVG edge layer */}
+                        {/* SVG edges */}
                         <svg style={{
                             position: "absolute", inset: 0,
                             width: "10000px", height: "10000px",
                             pointerEvents: "none", zIndex: 1, overflow: "visible",
                         }}>
                             <defs>
-                                <marker id="arrowNormal" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+                                <marker id="arrowNormal" markerWidth="8" markerHeight="6"
+                                    refX="7" refY="3" orient="auto">
                                     <polygon points="0 0, 8 3, 0 6" fill="var(--text-faint)" />
                                 </marker>
                             </defs>
@@ -366,30 +430,27 @@ export default function DiagramCanvas({ onDiagramChange }) {
                                 const mx = (f.x + t.x) / 2, my = (f.y + t.y) / 2;
                                 const dx = t.x - f.x, dy = t.y - f.y;
                                 const cx = mx - dy * 0.12, cy = my + dx * 0.12;
-
                                 return (
                                     <g key={ed.id} style={{ pointerEvents: "all" }}>
-                                        {/* Wide invisible hit-area */}
                                         <path
                                             d={`M${f.x},${f.y} Q${cx},${cy} ${t.x},${t.y}`}
-                                            fill="none" stroke="var(--text)" strokeWidth="14"
+                                            fill="none" stroke="transparent" strokeWidth="14"
                                             style={{ cursor: "pointer" }}
                                             onClick={() => removeEdge(ed.id)}
                                         />
-                                        {/* Visible dashed edge */}
                                         <path
                                             d={`M${f.x},${f.y} Q${cx},${cy} ${t.x},${t.y}`}
-                                            fill="none" stroke="var(--text)" strokeWidth="2"
+                                            fill="none" stroke="var(--border)" strokeWidth="2"
                                             strokeDasharray="6,4" markerEnd="url(#arrowNormal)"
                                         />
-                                        {/* Midpoint delete dot */}
                                         <circle cx={mx} cy={my} r="7"
-                                            fill="var(--bg-card)" stroke="var(--text)" strokeWidth="1.5"
+                                            fill="var(--bg-card)" stroke="var(--border)" strokeWidth="1.5"
                                             style={{ cursor: "pointer" }}
-                                            onClick={() => removeEdge(ed.id)} />
+                                            onClick={() => removeEdge(ed.id)}
+                                        />
                                         <text x={mx} y={my + 4} textAnchor="middle"
-                                            fontSize="9" fill="var(--text)"
-                                            style={{ pointerEvents: "all", cursor: "pointer", color: "var(--text)"}}
+                                            fontSize="9" fill="var(--text-faint)"
+                                            style={{ pointerEvents: "all", cursor: "pointer" }}
                                             onClick={() => removeEdge(ed.id)}>✕</text>
                                     </g>
                                 );
@@ -401,16 +462,19 @@ export default function DiagramCanvas({ onDiagramChange }) {
                             const isSel = selected.has(node.id);
                             const isCon = connecting === node.id;
                             return (
-                                <div key={node.id}
+                                <div
+                                    key={node.id}
                                     className={`${s.node} ${isSel ? s.nodeSel : ""} ${isCon ? s.nodeCon : ""}`}
                                     style={{
-                                        left: node.x, top: node.y,
+                                        left: node.x,
+                                        top: node.y,
                                         background: node.bg,
                                         "--nb": node.border,
                                         zIndex: isSel ? 30 : 10,
-                                        cursor: tool === "select" ? "grab" :
-                                            tool === "connect" ? "crosshair" :
-                                                tool === "delete" ? "not-allowed" : "text",
+                                        cursor:
+                                            tool === "select" ? "grab" :
+                                                tool === "connect" ? "crosshair" :
+                                                    tool === "delete" ? "not-allowed" : "text",
                                     }}
                                     onMouseDown={(e) => onNodeDown(e, node.id)}
                                     onDoubleClick={() => beginEdit(node.id)}
@@ -447,7 +511,8 @@ export default function DiagramCanvas({ onDiagramChange }) {
                 {nodes.length > 0 && (
                     <div className={s.minimap}>
                         <div className={s.minimapTitle}>MAP</div>
-                        <svg width="120" height="72" viewBox="0 0 900 600" preserveAspectRatio="xMidYMid meet">
+                        <svg width="120" height="72" viewBox="0 0 900 600"
+                            preserveAspectRatio="xMidYMid meet">
                             {edges.map((ed) => {
                                 const fn = nodes.find((n) => n.id === ed.from);
                                 const tn = nodes.find((n) => n.id === ed.to);
@@ -456,14 +521,16 @@ export default function DiagramCanvas({ onDiagramChange }) {
                                     <line key={ed.id}
                                         x1={fn.x + 55} y1={fn.y + 40}
                                         x2={tn.x + 55} y2={tn.y + 40}
-                                        stroke="var(--border)" strokeWidth="5" />
+                                        stroke="var(--border)" strokeWidth="5"
+                                    />
                                 );
                             })}
                             {nodes.map((n) => (
                                 <rect key={n.id}
                                     x={n.x} y={n.y} width="90" height="60" rx="8"
                                     fill={n.border + "40"} stroke={n.border} strokeWidth="4"
-                                    opacity={selected.has(n.id) ? 1 : 0.7} />
+                                    opacity={selected.has(n.id) ? 1 : 0.7}
+                                />
                             ))}
                         </svg>
                     </div>

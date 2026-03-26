@@ -1,12 +1,12 @@
 .workspace_container{
     display: flex;
     flex-direction: column;
-    height: 100vh;
+    height: 92vh;
     overflow: hidden;
 }
 
 .workspace_topbar{
-    background: var(--bg-card);
+    background: var(--bg-sidebar);
     border-bottom: 1px solid var(--border);
     padding: 9px 18px;
     display: flex;

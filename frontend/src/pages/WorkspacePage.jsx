@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { problemsApi, chatApi, designsApi } from '../utils/Api';
 import DiagramCanvas from '../components/DiagramCanvas';
+import AIMentorChat from '../components/AIMentorChat';
 import './WorkSpace.css';
 import '../index.css';
 
@@ -12,26 +13,14 @@ export default function WorkspacePage() {
     const slug = params.get("slug");
     const customQ = params.get("custom");
     const titleParams = params.get("title");
+    const timerParams = params.get("estimatedTime");
 
     const [problemTitle, setProblemTitle] = useState(titleParams || customQ || "System Design");
+    const [problemTime, setProblemTime] = useState(Number(timerParams) || 70);
     const [problemInfo, setProblemInfo] = useState(null);
     const [loadingProblem, setLoadingProblem] = useState(false);
-    const [timer, setTimer] = useState(0);
-    const [timerActive, setTimerActive] = useState(true);
-    const timerRef = useRef(null);
     const [explanation, setExplanation] = useState("");
     const [diagramData, setDiagramData] = useState({ nodes: [], edges: [] });
-
-    // Timer
-    useEffect(() => {
-        if (timerActive) {
-            timerRef.current = setInterval(() => {
-                setTimer((t) => t + 1);
-            }, 1000);
-        }
-
-        return () => clearInterval(timerRef.current);
-    }, [timerActive]);
 
     // Load a Problem
     useEffect(() => {
@@ -48,12 +37,41 @@ export default function WorkspacePage() {
             problemsApi.getBySlug(slug)
                 .then(({ problem }) => {
                     setProblemTitle(problem.title);
+                    setProblemTime(problem.estimatedTime);
                     setProblemInfo(problem);
                 })
                 .catch(() => { })
                 .finally(() => setLoadingProblem(false));
         }
     }, [slug, customQ]);
+
+    // const totalTime = problemTime;
+    const [timer, setTimer] = useState(0);
+    const [timerActive, setTimerActive] = useState(true);
+    const timerRef = useRef(null);
+
+    useEffect(() => {
+        if (problemTime) {
+            setTimer(problemTime * 60);
+        }
+    }, [problemTime]);
+
+    // Timer
+    useEffect(() => {
+        if (!timerActive) return;
+
+        timerRef.current = setInterval(() => {
+            setTimer((prev) => {
+                if (prev <= 1) {
+                    clearInterval(timerRef.current);
+                    return 0;
+                }
+                return prev - 1;
+            });
+        }, 1000);
+
+        return () => clearInterval(timerRef.current);
+    }, [timerActive]);
 
     function formatTime(sec) {
         const m = Math.floor(sec / 60);
@@ -106,6 +124,9 @@ export default function WorkspacePage() {
                 <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
                     <DiagramCanvas onDiagramChange={setDiagramData} />
                 </div>
+                <AIMentorChat problemTitle={problemTitle}
+                    problemSlug={slug}
+                    currentDiagram={diagramData} />
             </div>
         </div>
     )
