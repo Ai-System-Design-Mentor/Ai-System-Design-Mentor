@@ -75,7 +75,7 @@ const STANDARD_DESIGNS = {
         storageTotal: "1+ exabyte",
       },
     },
-  
+
     uber: {
       slug: "uber",
       summary:
@@ -154,7 +154,7 @@ const STANDARD_DESIGNS = {
         activeDrivers: "5M+",
       },
     },
-  
+
     whatsapp: {
       slug: "whatsapp",
       summary:
@@ -228,7 +228,7 @@ const STANDARD_DESIGNS = {
         dailyStorage: "100TB+",
       },
     },
-  
+
     "url-shortener": {
       slug: "url-shortener",
       summary:
@@ -300,7 +300,7 @@ const STANDARD_DESIGNS = {
         redirectLatencyP99: "<10ms",
       },
     },
-  
+
     twitter: {
       slug: "twitter",
       summary:
@@ -377,7 +377,7 @@ const STANDARD_DESIGNS = {
         searchQPS: "500K/sec",
       },
     },
-  
+
     netflix: {
       slug: "netflix",
       summary:
@@ -462,5 +462,5 @@ const STANDARD_DESIGNS = {
       },
     },
   };
-  
+
   module.exports = STANDARD_DESIGNS;
