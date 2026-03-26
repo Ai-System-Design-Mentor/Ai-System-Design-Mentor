@@ -8,7 +8,8 @@ import '../index.css';
 export default function HomePage() {
     const navigate = useNavigate();
     const [problems, setProblems] = useState(DEFAULT_PROBLEMS);
-    const [selectedDifficulty, setSelectedDifficulty] = useState("All")
+    const [selectedDifficulty, setSelectedDifficulty] = useState("All");
+    const [showAll, setShowAll] = useState(false);
 
     const activity = [
         { id: 1, title: `${problems.length}+`, dis: "Design Problem" },
@@ -17,6 +18,9 @@ export default function HomePage() {
     ];
 
     const filteredProblems = selectedDifficulty === "All" ? problems : problems.filter(p => p.difficulty === selectedDifficulty);
+
+    const displayedProblem = showAll
+        ? filteredProblems : filteredProblems.slice(0, 6);
 
     return (
         // Home Page Component
@@ -63,14 +67,33 @@ export default function HomePage() {
                 </div>
             </div>
             <div className="problems">
-                {filteredProblems.length === 0 ? (
+                {displayedProblem.length === 0 ? (
                     <p style={{ color: "var(--text-muted)", fontSize: 14, padding: "20px 0" }}>
-                    No problems found for this difficulty.
+                        No problems found for this difficulty.
                     </p>
                 ) : (
-                    filteredProblems.map((p) => (
-                        <ProblemCard key={p.slug || p.id} problem={p} />
-                )))}
+                    [...displayedProblem]
+                        .sort(() => Math.random() - 0.5)
+                        .map((p) => (
+                            <ProblemCard key={p.slug || p.id} problem={p} />
+                        )))}
+            </div>
+            <div className='viewBtn'>
+                {!showAll && filteredProblems.length > 6 && (
+                    <button
+                        onClick={() => setShowAll(true)}
+                        className='showMore'>
+                        ▼ View More
+                    </button>
+                )}
+                {showAll && (
+                    <button
+                        onClick={() => setShowAll(false)}
+                        className='showLess'
+                    >
+                        ▲ Show Less
+                    </button>
+                )}
             </div>
         </div>
     )

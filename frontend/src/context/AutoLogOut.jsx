@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 
-export default function useAutoLogout(onLogout, timeout = 300000) {
+export default function useAutoLogout(onLogout, timeout = 30000000) {
     const timer = useRef(null);
 
     const resetTimer = () => {

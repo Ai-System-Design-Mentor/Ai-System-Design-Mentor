@@ -124,10 +124,10 @@ export default function Navbar() {
                                     onClick={() => navigate("/profile")}>
                                     <span>👤</span> Profile
                                 </button>
-                                <button className={styles.dropItem} role="menuitem"
+                                {/* <button className={styles.dropItem} role="menuitem"
                                     onClick={() => navigate("/dashboard")}>
                                     <span>📊</span> Dashboard
-                                </button>
+                                </button> */}
 
                                 <div className={styles.dropDivider} />
 

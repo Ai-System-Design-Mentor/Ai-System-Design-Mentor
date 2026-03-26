@@ -1,13 +1,17 @@
 export const DEFAULT_PROBLEMS = [
-    { slug: "url-shortener", title: "Design a URL Shortener", difficulty: "Easy", tags: ["Hashing", "Database", "API Gateway"], time: "30", icon: "🔗", color: "#0EA5E9" },
-    { slug: "twitter", title: "Design a Twitter/X", difficulty: "Hard", tags: ["Feed", "Scale", "Cache", "CDN"], time: "60", icon: "🐦", color: "#1DA1F2" },
-    { slug: "chat", title: "Design a real-time chat app", difficulty: "Medium", tags: ["WebSocket", "Messaging", "Queue"], time: "30", icon: "💬", color: "#E50914" },
-    { slug: "netflix", title: "Design a Netflix", difficulty: "Hard", tags: ["CDN", "Streaming", "Load Balancer"], time: "60", icon: "🎬", color: "#1a1a1a" },
-    { slug: "rate-limiter", title: "Design a rate limiter", difficulty: "Medium", tags: ["Redis", "Algorithm", "API Gateway"], time: "30", icon: "⏱️", color: "#E50914" },
-    { slug: "google-drive", title: "Design a Google Drive", difficulty: "Medium", tags: ["Storage", "Sync", "Auth", "Metadata DB"], time: "60", icon: "📁", color: "#25D366" },
-    { slug: "whatsapp", title: "Design a WhatsApp", difficulty: "Medium", tags: ["Message", "E2E", "Push"], time: "60", icon: "💬", color: "#25D366" },
-    { slug: "uber", title: "Design a Uber", difficulty: "Hard", tags: ["GPS", "Matching", "Real-Time"], time: "45", icon: "🚗", color: "#1a1a1a" },
-    { slug: "youtube", title: "Design a Youtube", difficulty: "Hard", tags: ["CDN", "Streaming", "Storage"], time: "60", icon: "▶", color: "#FF0000" },
+    { slug: "url-shortener", title: "Design a URL Shortener", difficulty: "Easy", tags: ["Hashing", "Redirect", "Cache", "Analytics"], time: "30", icon: "🔗", color: "#0EA5E9" },
+    { slug: "twitter", title: "Design a Twitter/X", difficulty: "Hard", tags: ["Feed", "Social Graph", "Search", "Trending"], time: "60", icon: "🐦", color: "#1DA1F2" },
+    { slug: "chat", title: "Design a real-time chat app", difficulty: "Medium", tags: ["WebSocket", "Messaging", "Queue", "Push"], time: "45", icon: "💬", color: "#6366F1" },
+    { slug: "netflix", title: "Design a Netflix", difficulty: "Hard", tags: ["CDN", "Encoding", "Streaming", "Recommendation"], time: "60", icon: "🎬", color: "#1a1a1a" },
+    { slug: "rate-limiter", title: "Design a rate limiter", difficulty: "Medium", tags: ["Redis", "Algorithm", "API Gateway", "Distributed"], time: "30", icon: "⏱️", color: "#8B5CF6" },
+    { slug: "google-drive", title: "Design a Google Drive", difficulty: "Medium", tags: ["Storage", "Sync", "Auth", "Metadata DB", "CDN"], time: "60", icon: "📁", color: "#4285F4" },
+    { slug: "whatsapp", title: "Design a WhatsApp", difficulty: "Medium", tags: ["Message", "E2E", "Push Notification"], time: "60", icon: "💬", color: "#25D366" },
+    { slug: "uber", title: "Design a Uber", difficulty: "Hard", tags: ["GPS", "Matching", "Real-Time", "Maps"], time: "45", icon: "🚗", color: "#1a1a1a" },
+    { slug: "youtube", title: "Design a Youtube", difficulty: "Medium", tags: ["CDN", "Streaming", "Storage", "Video"], time: "60", icon: "▶", color: "#FF0000" },
+    { slug: "instagram", title: "Design a Instagram", difficulty: "Hard", tags: ["Feed", "CDN", "Stories", "Search", "Graph"], time: "60", icon: "📸", color: "#E1306C" },
+    { slug: "amazon", title: "Design a Amazon", difficulty: "Hard", tags: ["E-commerce", "Search", "Inventory", "Payment", "CDN"], time: "60", icon: "🛒", color: "#FF9900" },
+    { slug: "dropbox", title: "Design a Dropbox", difficulty: "Medium", tags: ["Storage", "Sync", "CDN", "Distributed Systems"], time: "60", icon: "☁️", color: "#0061FF" },
+    { slug: "notification-system", title: "Design a Notification System", difficulty: "Easy", tags: ["Queue", "Push", "Email", "SMS"], time: "25", icon: "🔔", color: "#3B82F6" },
 ];
 
 export const DIAGRAM_COMPONENTS = [
