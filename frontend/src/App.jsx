@@ -9,13 +9,13 @@ import Profile from "./pages/ProfilePage";
 import Dashboard from "./pages/DashboardPage";
 
 export default function App() {
-    const naviagte = useNavigate();
+    const navigate = useNavigate();
 
     const handleLogout = () => {
         localStorage.removeItem("token");
-        Navigate("/login");
+        navigate("/login");
     }
-    useAutoLogout(handleLogout, 300000);
+    useAutoLogout(handleLogout, 86400000);
     return (
         <>
             <Navbar />

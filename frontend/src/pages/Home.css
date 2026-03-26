@@ -220,3 +220,27 @@
     box-shadow: 0 0 12px #3255b5;
     transform: scale(1.01);
 }
+
+.viewBtn{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.showLess, .showMore{
+    margin-top: 25px;
+    padding: 8px 16px;
+    cursor: pointer;
+    background: transparent;
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    color: var(--accent);
+    font-size: 15px;
+}
+
+.showLess:hover, .showMore:hover{
+    color: #3255b5;
+    border-color: #3255b5;
+    background: rgba(50, 85, 181, 0.1);
+    transform: scale(0.97);
+}

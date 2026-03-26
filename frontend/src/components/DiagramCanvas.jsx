@@ -220,7 +220,7 @@ export default function DiagramCanvas({ onDiagramChange }) {
         );
     }
 
-    // ── Label editing ─────────────────────────────────────────────────────────
+    // Label editing
     function beginEdit(id) {
         const n = nodes.find((x) => x.id === id);
         if (!n) return;
@@ -274,7 +274,7 @@ export default function DiagramCanvas({ onDiagramChange }) {
         setZoom(1);
     }
 
-    // ── Edge geometry ─────────────────────────────────────────────────────────
+    // Edge geometry
     function center(node) { return { x: node.x + 59, y: node.y + 40 }; }
 
     const cursor =
@@ -286,7 +286,7 @@ export default function DiagramCanvas({ onDiagramChange }) {
     return (
         <div className={s.wrap}>
 
-            {/* ── Left panel ──────────────────────────────────── */}
+            {/* Left panel */}
             <div className={s.panel}>
                 <div className={s.panelTitle}>Components</div>
                 <div className={s.panelList}>
@@ -316,7 +316,7 @@ export default function DiagramCanvas({ onDiagramChange }) {
                 </div>
             </div>
 
-            {/* ── Canvas area ─────────────────────────────────── */}
+            {/* Canvas area  */}
             <div className={s.canvasWrap}>
 
                 {/* Toolbar */}
