@@ -1,12 +1,14 @@
 :root {
     --bg: #f5f6fa;
     --bg-card: #ffffff;
+    --bg-sidebar: #FFFFFF;
     --text: #1a1a2e;
     --text-muted: #6b7280;
     --text-faint: #edeef1;
     --border: #e5e7eb;
     --accent: #7c6fff;
     --accent-hover: #4f46e5;
+    --accent-glow: rgba(37, 99, 235, 0.12);
     --danger: #ef4444;
     --bg-box: #f1f5f9;
 }
@@ -22,6 +24,7 @@
     --accent-hover: #6366f1;
     --danger: #f87171;
     --bg-box: #1c2230;
+    --bg-sidebar: #161B22;
 }
 
 * {

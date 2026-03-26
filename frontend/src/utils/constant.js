@@ -6,7 +6,7 @@ export const DEFAULT_PROBLEMS = [
     { slug: "rate-limiter", title: "Design a rate limiter", difficulty: "Medium", tags: ["Redis", "Algorithm", "API Gateway"], time: "30", icon: "⏱️", color: "#E50914" },
     { slug: "google-drive", title: "Design a Google Drive", difficulty: "Medium", tags: ["Storage", "Sync", "Auth", "Metadata DB"], time: "60", icon: "📁", color: "#25D366" },
     { slug: "whatsapp", title: "Design a WhatsApp", difficulty: "Medium", tags: ["Message", "E2E", "Push"], time: "60", icon: "💬", color: "#25D366" },
-    { slug: "uber", title: "Design a Uber", difficulty: "Hard", tags: ["GPS", "Matching", "Real-Time"], time: "50", icon: "🚗", color: "#1a1a1a" },
+    { slug: "uber", title: "Design a Uber", difficulty: "Hard", tags: ["GPS", "Matching", "Real-Time"], time: "45", icon: "🚗", color: "#1a1a1a" },
     { slug: "youtube", title: "Design a Youtube", difficulty: "Hard", tags: ["CDN", "Streaming", "Storage"], time: "60", icon: "▶", color: "#FF0000" },
 ];
 
