@@ -20,6 +20,7 @@ export default function WorkspacePage() {
     const [problemInfo, setProblemInfo] = useState(null);
     const [loadingProblem, setLoadingProblem] = useState(false);
     const [explanation, setExplanation] = useState("");
+    const [submitting, setSubmitting] = useState(false);
     const [diagramData, setDiagramData] = useState({ nodes: [], edges: [] });
 
     // Load a Problem
@@ -88,6 +89,34 @@ export default function WorkspacePage() {
             problemInfo?.difficulty === "Medium" ? "234,179,8" :
                 problemInfo?.difficulty === "Hard" ? "239,68,68" : "239,68,68";
 
+    async function handleSubmit() {
+        if (diagramData.nodes.length < 2) {
+            alert("Please add at least 2 components on your diagram before submitting.");
+            return;
+        }
+
+        setSubmitting(true);
+        setTimerActive(false);
+        clearInterval(timerRef.current);
+
+        try {
+            const { attemptId, evaluation } = await designsApi.submit({
+                problemSlug: slug || null,
+                problemTitle,
+                isCustomProblem: !!customQ,
+                diagramData,
+                textExplanation: explanation,
+                timeTaken: timer,
+            });
+            navigate(`/result/${attemptId}`, { state: { evaluation, problemTitle } });
+        } catch (error) {
+            console.log(error.message || "Submission failed. Please try again.");
+            alert(error.message || "Submission failed. Please try again.");
+            setSubmitting(false);
+            setTimerActive(true);
+        }
+    }
+
     return (
         <div className="workspace_container">
             <div className="workspace_topbar">
@@ -115,8 +144,8 @@ export default function WorkspacePage() {
                 </div>
 
                 <button className="btn btn-primary"
-                    style={{ padding: "9px 22px" }}>
-                    Submit & Evaluate →
+                    style={{ padding: "9px 22px" }} onClick={handleSubmit} disabled={submitting}>
+                    {submitting ? <span className="pulse">Evaluating…</span> : "Submit & Evaluate →"}
                 </button>
             </div>
 

@@ -27,14 +27,14 @@ export default function Dashboard() {
         ? `${linePath} L${tx(chartData.length - 1)},${H - P} L${tx(0)},${H - P} Z`
         : "";
 
-    // if (loading) return (
-    //     <div style={{ height: "70vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
-    //         <div style={{ textAlign: "center" }}>
-    //             <span className="spin" style={{ fontSize: 38, display: "block", marginBottom: 14 }}>⚙️</span>
-    //             <p style={{ color: "var(--text-muted)" }}>Loading dashboard…</p>
-    //         </div>
-    //     </div>
-    // );
+    if (loading) return (
+        <div style={{ height: "70vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <div style={{ textAlign: "center" }}>
+                <span className="spin" style={{ fontSize: 38, display: "block", marginBottom: 14 }}>⚙️</span>
+                <p style={{ color: "var(--text-muted)" }}>Loading dashboard…</p>
+            </div>
+        </div>
+    );
 
     return (
         <div className="dashboard">
@@ -117,7 +117,7 @@ export default function Dashboard() {
                         ].map((sk) => (
                             <div key={sk.name} style={{ marginTop: 25, marginBottom: 14 }}>
                                 <div className="skills_comp">
-                                    <span style={{ fontSize: 13, fontWeight: 500}}>{sk.emoji} {sk.name}</span>
+                                    <span style={{ fontSize: 13, fontWeight: 500 }}>{sk.emoji} {sk.name}</span>
                                     <span style={{ fontSize: 12, fontWeight: 700, color: sk.col }}>{sk.score}/10</span>
                                 </div>
                                 <div style={{ height: 6, background: "var(--text-faint)", borderRadius: 3, overflow: "hidden" }}>
@@ -131,6 +131,39 @@ export default function Dashboard() {
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
                         <div style={{ fontWeight: 700, fontSize: 15 }}>Recent Attempts</div>
                         <span style={{ fontSize: 12, color: "var(--text-muted)" }}>{user.stats.totalAttempts} total</span>
+                    </div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
+                        {[...attempts].reverse().slice(0, 6).map((a, i) => {
+                            const sc = parseFloat(a.score) || 0;
+                            const col = sc >= 8 ? "#22C55E" : sc >= 6 ? "#F97316" : "#EF4444";
+                            return (
+                                <div key={i}
+                                    onClick={() => a._id && navigate(`/result/${a._id}`)}
+                                    style={{
+                                        display: "flex", alignItems: "center",
+                                        justifyContent: "space-between",
+                                        padding: "10px 14px",
+                                        background: "var(--bg-hover)",
+                                        borderRadius: 10,
+                                        cursor: a._id ? "pointer" : "default",
+                                        transition: "background 0.14s",
+                                    }}
+                                    onMouseEnter={(e) => { if (a._id) e.currentTarget.style.background = "var(--border)"; }}
+                                    onMouseLeave={(e) => { e.currentTarget.style.background = "var(--bg-hover)"; }}
+                                >
+                                    <div>
+                                        <div style={{ fontWeight: 600, fontSize: 14, color: "var(--text)" }}>{a.problemTitle}</div>
+                                        <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 2 }}>
+                                            {a.createdAt ? new Date(a.createdAt).toLocaleDateString() : ""}
+                                            {a.timeTaken > 0 && ` · ${Math.floor(a.timeTaken / 60)}m ${a.timeTaken % 60}s`}
+                                        </div>
+                                    </div>
+                                    <div style={{ fontSize: 22, fontWeight: 800, color: col }}>
+                                        {sc.toFixed(1)}
+                                    </div>
+                                </div>
+                            );
+                        })}
                     </div>
                 </div>
             </div>

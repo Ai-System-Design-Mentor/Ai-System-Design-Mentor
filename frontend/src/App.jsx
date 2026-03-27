@@ -7,6 +7,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import useAutoLogout from "./context/AutoLogOut";
 import Profile from "./pages/ProfilePage";
 import Dashboard from "./pages/DashboardPage";
+import ResultPage from "./pages/ResultPage";
 
 export default function App() {
     const navigate = useNavigate();
@@ -33,6 +34,9 @@ export default function App() {
                 } />
                 <Route path="/dashboard" element={
                     <ProtectedRoute> <Dashboard /></ProtectedRoute>
+                } />
+                <Route path="/result/:id" element={
+                    <ProtectedRoute> <ResultPage /></ProtectedRoute>
                 } />
 
                 {/* Fallback */}
