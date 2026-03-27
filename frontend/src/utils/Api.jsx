@@ -126,7 +126,7 @@ export const problemsApi = {
 
 // Designs API
 export const designsApi = {
-    submit: (data) => post("/designs", data),
-    getAll: () => get("/designs"),
+    submit: (data) => post("/designs/submit", data),
+    getAll: () => get("/designs/history"),
     getById: (id) => get(`/designs/${id}`),
 };

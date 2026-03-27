@@ -5,7 +5,7 @@ const STANDARD_DESIGNS      = require("../data/standardDesigns");
 const { callForEvaluation, callForProblem } = require("../utils/aiClient");
 
 
-// ─── POST /api/designs/submit 
+// ─── POST /api/designs/submit
 exports.submitDesign = async (req, res) => {
   try {
     const {
@@ -42,8 +42,8 @@ exports.submitDesign = async (req, res) => {
     let standardDesign = null;
     let matchInfo      = null;
     let dbProblem      = null;
-    // ── TIER 1: In-memory preset (YouTube, Uber, WhatsApp ...) 
-    // for the standardf problems  
+    // ── TIER 1: In-memory preset (YouTube, Uber, WhatsApp ...)
+    // for the standardf problems
     if (!isCustomProblem && problemSlug && STANDARD_DESIGNS[problemSlug]) {
       standardDesign = STANDARD_DESIGNS[problemSlug];
       matchInfo = { tier: 1, source: "preset-memory", slug: problemSlug };
@@ -57,7 +57,7 @@ exports.submitDesign = async (req, res) => {
       // Build the slug to look up
       const lookupSlug = problemSlug || deriveProblemSlug(problemTitle);
 
-      dbProblem = await Problem.findOne({ slug: lookupSlug }).lean(); // check in db 
+      dbProblem = await Problem.findOne({ slug: lookupSlug }).lean(); // check in db
 
       if (dbProblem?.standardDesign?.criticalComponents?.length) {
         standardDesign = dbProblem.standardDesign;
@@ -71,7 +71,7 @@ exports.submitDesign = async (req, res) => {
       const derivedSlug = problemSlug || deriveProblemSlug(problemTitle);
       console.info(`[Design] TIER 3: "${problemTitle}" → not in DB, generating reference via AI...`);
       try {
-        const generatedDesign = await generateStandardDesignViaAI(problemTitle); // gen the design 
+        const generatedDesign = await generateStandardDesignViaAI(problemTitle); // gen the design
         if (generatedDesign) {
           standardDesign = generatedDesign;
           matchInfo = { tier: 3, source: "ai-generated" };
@@ -80,7 +80,7 @@ exports.submitDesign = async (req, res) => {
             await Problem.findOneAndUpdate(
               { slug: derivedSlug },
               {
-                $setOnInsert: { // only insert if not exist 
+                $setOnInsert: { // only insert if not exist
                   slug:          derivedSlug,
                   title:         problemTitle,
                   description:   generatedDesign.summary || "",
@@ -127,7 +127,7 @@ exports.submitDesign = async (req, res) => {
       messages: [{ role: "user", content: prompt }],
     });
 
-    //  Parse JSON response safely 
+    //  Parse JSON response safely
     let evaluation;
     const rawText = message.text;
     try {
@@ -170,11 +170,26 @@ exports.submitDesign = async (req, res) => {
 
     //  Update user stats and weak areas
     const userDoc = await User.findById(req.user._id);
-    await userDoc.updateStats(evaluation.score);
+
+    const newTotalScore = (userDoc.totalScore || 0) + evaluation.score;
+    const newAttempts = (userDoc.attempts || 0) + 1;
+
+    let updateData = {
+    totalScore: newTotalScore,
+    attempts: newAttempts,
+    avgScore: newTotalScore / newAttempts,
+    };
+
     if (evaluation.weakAreas?.length) {
-      const merged = [...new Set([...evaluation.weakAreas, ...userDoc.weakAreas])].slice(0, 5);
-      await User.findByIdAndUpdate(req.user._id, { weakAreas: merged });
+    updateData.weakAreas = [
+        ...new Set([
+        ...evaluation.weakAreas,
+        ...(userDoc.weakAreas || [])
+        ])
+    ].slice(0, 5);
     }
+
+    await User.findByIdAndUpdate(req.user._id, updateData);
 
     res.status(201).json({
       attemptId:     attempt._id,
@@ -182,6 +197,8 @@ exports.submitDesign = async (req, res) => {
       _matchInfo:    matchInfo,
       _provider:     message.provider,
     });
+
+    // userSchema.method
 
   } catch (err) {
     console.error("submitDesign:", err);
@@ -207,7 +224,7 @@ function deriveProblemSlug(title) {
     .replace(/-+/g, "-")                              // collapse multiple hyphens
     .slice(0, 80);                                    // max length
 }
-// genrate the desing from the Ai --> 
+// genrate the desing from the Ai -->
 async function generateStandardDesignViaAI(systemName) {
   const { text } = await callForProblem({
     max_tokens: 1200,
@@ -257,7 +274,7 @@ Return ONLY valid JSON (no markdown, no extra text):
   }
 }
 
-// Evaluation prompt builder 
+// Evaluation prompt builder
 function buildEvaluationPrompt({
   problemTitle,
   nodeList,

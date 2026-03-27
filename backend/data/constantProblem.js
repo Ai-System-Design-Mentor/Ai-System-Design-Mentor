@@ -112,7 +112,7 @@ const SEED_PROBLEMS = [
             "Where will you store chat history?",
             "How will you scale to millions of concurrent connections?"
         ],
-        standardDesign: []
+        standardDesign: STANDARD_DESIGNS["chat"],
     },
     {
         slug: "rate-limiter",
@@ -136,7 +136,7 @@ const SEED_PROBLEMS = [
             "Rules configurable at runtime",
         ],
         hints: [],
-        standardDesign: []
+        standardDesign: STANDARD_DESIGNS["rate-limiter"]
     },
     {
         slug: "google-drive",
@@ -161,7 +161,7 @@ const SEED_PROBLEMS = [
             "99.999999999% data durability",
         ],
         hints: [],
-        standardDesign: []
+        standardDesign: STANDARD_DESIGNS["google-drive"]
     },
     {
         slug: "instagram",
@@ -186,7 +186,7 @@ const SEED_PROBLEMS = [
             "Stories viewed 500M times daily",
         ],
         hints: [],
-        standardDesign: []
+        standardDesign: STANDARD_DESIGNS.instagram
     },
     {
         slug: "amazon",
@@ -211,7 +211,7 @@ const SEED_PROBLEMS = [
             "Payment must be ACID compliant",
         ],
         hints: [],
-        standardDesign: []
+        standardDesign: STANDARD_DESIGNS.amazon,
     },
     {
         slug: "dropbox",
@@ -243,7 +243,7 @@ const SEED_PROBLEMS = [
             "Conflict resolution for simultaneous edits?",
             "Use CDN for faster downloads"
         ],
-        standardDesign: [],
+        standardDesign: STANDARD_DESIGNS.dropbox,
     },
     {
         slug: "notification-system",
@@ -274,7 +274,7 @@ const SEED_PROBLEMS = [
             "User preferences storage?",
             "Rate limiting?"
         ],
-        standardDesign: []
+        standardDesign: STANDARD_DESIGNS["notification-system"]
     }
 ];
 
