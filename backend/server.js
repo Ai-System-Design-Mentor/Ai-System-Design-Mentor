@@ -7,6 +7,7 @@ const authRoutes    = require("./routes/auth");
 const problemRoutes = require("./routes/problems");
 const userRoutes    = require("./routes/users");
 const designRoutes  = require("./routes/designs");
+const chatRoutes    = require("./routes/chat");
 
 const app=express();
 app.use(express.json({ limit: "3mb" }));
@@ -19,6 +20,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/problems", problemRoutes);
 app.use("/api/users",    userRoutes);
 app.use("/api/designs",  designRoutes);
+app.use("/api/chat",     chatRoutes);
 
 //console.log("URI:", process.env.MONGODB_URI);
 // connect to mongoDb
