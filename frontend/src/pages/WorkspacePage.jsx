@@ -5,10 +5,14 @@ import DiagramCanvas from '../components/DiagramCanvas';
 import AIMentorChat from '../components/AIMentorChat';
 import './WorkSpace.css';
 import '../index.css';
+import { toPng } from 'html-to-image';
 
 export default function WorkspacePage() {
     const navigate = useNavigate();
     const [params] = useSearchParams();
+    
+    // 1. Reference to the diagram container for screenshotting
+    const diagramRef = useRef(null);
 
     const slug = params.get("slug");
     const customQ = params.get("custom");
@@ -46,7 +50,6 @@ export default function WorkspacePage() {
         }
     }, [slug, customQ]);
 
-    // const totalTime = problemTime;
     const [timer, setTimer] = useState(0);
     const [timerActive, setTimerActive] = useState(true);
     const timerRef = useRef(null);
@@ -100,6 +103,14 @@ export default function WorkspacePage() {
         clearInterval(timerRef.current);
 
         try {
+            // 2. Capture the screenshot
+            let base64Image = "";
+            if (diagramRef.current) {
+                // Background color ensures the image isn't transparent (change hex to match your app's theme if needed)
+                base64Image = await toPng(diagramRef.current, { backgroundColor: '#1e1e1e' }); 
+            }
+
+            // 3. Send image to the backend
             const { attemptId, evaluation } = await designsApi.submit({
                 problemSlug: slug || null,
                 problemTitle,
@@ -107,7 +118,9 @@ export default function WorkspacePage() {
                 diagramData,
                 textExplanation: explanation,
                 timeTaken: timer,
+                diagramImage: base64Image, // <--- Image string is attached here
             });
+            
             navigate(`/result/${attemptId}`, { state: { evaluation, problemTitle } });
         } catch (error) {
             console.log(error.message || "Submission failed. Please try again.");
@@ -150,7 +163,8 @@ export default function WorkspacePage() {
             </div>
 
             <div style={{ flex: 1, display: "flex", overflow: "hidden" }}>
-                <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
+                {/* 4. Attach diagramRef to the wrapper div so it knows what to screenshot */}
+                <div ref={diagramRef} style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
                     <DiagramCanvas onDiagramChange={setDiagramData} />
                 </div>
                 <AIMentorChat problemTitle={problemTitle}

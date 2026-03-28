@@ -25,6 +25,7 @@ const attemptSchema = new mongoose.Schema(
       nodes: [nodeSchema], // store the companents used in the design diagram
       edges: [edgeSchema],
     },
+    diagramImage: { type: String },
     textExplanation: { type: String, default: "" },
 
 

@@ -15,6 +15,7 @@ exports.submitDesign = async (req, res) => {
       diagramData,
       textExplanation,
       timeTaken,
+      diagramImage
     } = req.body;
 
     if (!problemTitle?.trim())
@@ -153,6 +154,7 @@ exports.submitDesign = async (req, res) => {
       problemTitle,
       isCustomProblem:  !!isCustomProblem,
       diagramData,
+      diagramImage,
       textExplanation:  textExplanation || "",
       score:            evaluation.score,
       summary:          evaluation.summary,
@@ -198,7 +200,7 @@ exports.submitDesign = async (req, res) => {
       _provider:     message.provider,
     });
 
-    // userSchema.method
+ 
 
   } catch (err) {
     console.error("submitDesign:", err);
