@@ -66,12 +66,19 @@ export default function ResultPage() {
     const [loading, setLoading] = useState(!data);
     const [tab, setTab] = useState("feedback");
 
+    // 1. UPDATED USE EFFECT
     useEffect(() => {
-        if (!data && id) {
-            setLoading(true);
+        if (id) {
+            // ALWAYS fetch from DB to get the full record (including diagramImage),
+            // even if we already have partial text data from the router state.
             designsApi.getById(id)
-                .then(({ attempt }) => { setData(attempt); setTitle(attempt.problemTitle); })
-                .catch(() => navigate("/"))
+                .then(({ attempt }) => { 
+                    setData(attempt); 
+                    setTitle(attempt.problemTitle); 
+                })
+                .catch(() => {
+                    if (!data) navigate("/"); // Only redirect if we have absolutely no data
+                })
                 .finally(() => setLoading(false));
         }
     }, [id]);
@@ -102,8 +109,10 @@ export default function ResultPage() {
     const sb = data.scoringBreakdown || {};
     const comp = data.comparisonWithStandard;
 
+    // ADD THE "YOUR DESIGN" TAB
     const TABS = [
         { id: "feedback", label: "📊 Feedback" },
+        { id: "design", label: "🖼️ Your Design", hide: !data.diagramImage }, // Only shows if image exists
         { id: "comparison", label: "🔬 vs Standard", hide: !comp },
         { id: "reference", label: "📐 Reference" },
     ].filter((t) => !t.hide);
@@ -178,7 +187,7 @@ export default function ResultPage() {
             )}
 
             {/* Tabs */}
-            <div style={{ display: "flex", gap: 4, background: "var(--bg-hover)", borderRadius: 10, padding: 4, marginBottom: 18, width: "fit-content" }}>
+            <div style={{ display: "flex", gap: 4, background: "var(--bg-hover)", borderRadius: 10, padding: 4, marginBottom: 18, width: "fit-content", flexWrap: "wrap" }}>
                 {TABS.map((t) => (
                     <button key={t.id} onClick={() => setTab(t.id)} style={{
                         border: "none", borderRadius: 7, padding: "7px 18px",
@@ -191,6 +200,25 @@ export default function ResultPage() {
                     }}>{t.label}</button>
                 ))}
             </div>
+
+            {/* RENDER THE DIAGRAM IMAGE TAB */}
+            {tab === "design" && data.diagramImage && (
+                <div className="card fade-in" style={{ padding: "12px", background: "var(--bg-hover)", border: "1px solid var(--border)" }}>
+                    <div style={{ fontWeight: 700, fontSize: 13, color: "var(--text)", padding: "8px 12px" }}>
+                        Your Submitted Architecture
+                    </div>
+                    <img 
+                        src={data.diagramImage} 
+                        alt="Your System Design Architecture" 
+                        style={{ 
+                            width: "100%", 
+                            borderRadius: "6px", 
+                            display: "block",
+                            border: "1px solid var(--border)"
+                        }} 
+                    />
+                </div>
+            )}
 
             {/* Tab: Feedback*/}
             {tab === "feedback" && (
