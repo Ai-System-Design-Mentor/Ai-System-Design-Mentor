@@ -85,7 +85,7 @@ export default function Dashboard() {
                                                 stroke="var(--border)" strokeWidth="1" />
                                         ))}
                                         {/* Area fill */}
-                                        {areaPath && <path d={areaPath} fill="url(#aGrad)" />}
+                                        {areaPath && <path className="path" d={areaPath} fill="url(#aGrad)" />}
                                         {/* Line */}
                                         {linePath && (
                                             <path d={linePath} fill="none" stroke="#2563EB"

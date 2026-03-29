@@ -6,6 +6,7 @@
     --text-muted: #6b7280;
     --text-faint: #edeef1;
     --border: #e5e7eb;
+    --dot: #414141;
     --accent: #7c6fff;
     --accent-hover: #4f46e5;
     --accent-glow: rgba(37, 99, 235, 0.12);
@@ -20,6 +21,7 @@
     --text-muted: #94a3b8;
     --text-faint: #2a2f36;
     --border: #2d2d44;
+    --dot: #414141;
     --accent: #818cf8;
     --accent-hover: #6366f1;
     --danger: #f87171;
