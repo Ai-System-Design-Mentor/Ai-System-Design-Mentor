@@ -1,7 +1,7 @@
 require("dotenv").config();
 const express    = require("express");
 const cors       = require("cors");
-const helmet    = require("helmet"); // to provide security  
+const helmet    = require("helmet"); // to provide security
 const mongoose   = require("mongoose");
 const rateLimit  = require("express-rate-limit");
 const { getQueueStats }  = require("./utils/aiClient");
@@ -14,7 +14,7 @@ const chatRoutes    = require("./routes/chat");
 const app=express();
 
 
-//Security Headers  
+//Security Headers
 app.use(helmet());
 app.use(helmet.contentSecurityPolicy({
   directives: {
@@ -29,12 +29,12 @@ app.use(helmet.contentSecurityPolicy({
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
-// coonect with frontend 
+// coonect with frontend
 app.use(cors({
     origin: process.env.CLIENT_URL || "http://localhost:5173",
     credentials: true
 }));
-//  Global rate limiter 
+
 app.use(rateLimit({
   windowMs:       15 * 60 * 1000,
   max:            300,
@@ -43,14 +43,14 @@ app.use(rateLimit({
   message: { error: "Too many requests. Please slow down." },
 }));
 
-// Stricter limiter for auth routes (prevent brute force) 
+// Stricter limiter for auth routes (prevent brute force)
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max:      20,
   message: { error: "Too many auth attempts. Please wait 15 minutes." },
 });
 
-//Routes 
+//Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/problems", problemRoutes);
 app.use("/api/users",    userRoutes);
@@ -59,10 +59,10 @@ app.use("/api/chat",     chatRoutes);
 
 
 
-// Health check 
+// Health check
 app.get("/api/health", async (_req, res) => {
   const ai = getQueueStats(); // Pulled from your new Gemini aiClient.js
-  
+
   let customProblems = 0;
   try {
     const Problem = require("./models/Problem");
@@ -76,11 +76,11 @@ app.get("/api/health", async (_req, res) => {
     pillars: {
       "1_db_cache":         { customProblemsCached: customProblems },
       "2_zero_token_hints": { aiCalls: 0 },
-      "3_ai_mentor":        { 
-          fastModel: ai.fastModel, 
-          smartModel: ai.smartModel, 
-          geminiEnabled: ai.geminiEnabled, 
-          activeConnections: ai.active 
+      "3_ai_mentor":        {
+          fastModel: ai.fastModel,
+          smartModel: ai.smartModel,
+          geminiEnabled: ai.geminiEnabled,
+          activeConnections: ai.active
       },
     }
   });
