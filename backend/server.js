@@ -34,8 +34,6 @@ app.use(cors({
     origin: process.env.CLIENT_URL || "http://localhost:5173",
     credentials: true
 }));
-
-
 //  Global rate limiter 
 app.use(rateLimit({
   windowMs:       15 * 60 * 1000,
