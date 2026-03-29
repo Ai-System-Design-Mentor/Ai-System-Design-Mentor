@@ -1,5 +1,4 @@
-import React from 'react';
-import { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from "../context/AuthContext";
 import "../index.css";
 import "./Profile.css";
@@ -19,7 +18,7 @@ export default function Profile() {
     ];
     const formatted = date ? `${months[date.getMonth()]} ${date.getFullYear()}` : "-";
 
-    const [username, setUsername] = React.useState(user?.username || "");
+    const [username, setUsername] = useState(user?.username || "");
     const [unMsg, setUnMsg] = useState("");
     const [savingUn, setSavingUn] = useState(false);
 
@@ -28,6 +27,27 @@ export default function Profile() {
     const [confirmNewPassword, setConfirmNewPassword] = useState("");
     const [psMsg, setPsMsg] = useState("");
     const [savingPs, setSavingPs] = useState(false);
+
+    // ─── DYNAMIC STATS CALCULATION ──────────────────────────────────────
+    const [attempts, setAttempts] = useState([]);
+
+    useEffect(() => {
+        // Fetch the latest attempts quietly in the background
+        usersApi.getProfile()
+            .then(({ attempts: a }) => setAttempts(a || []))
+            .catch(() => {});
+    }, []);
+
+    const totalAttempts = attempts.length;
+    
+    const bestScore = totalAttempts > 0 
+        ? Math.max(...attempts.map(a => parseFloat(a.score) || 0)).toFixed(1) 
+        : "0.0";
+        
+    const avgScore = totalAttempts > 0 
+        ? (attempts.reduce((sum, a) => sum + (parseFloat(a.score) || 0), 0) / totalAttempts).toFixed(1) 
+        : "0.0";
+    // ────────────────────────────────────────────────────────────────────
 
     const handleUsernameUpdate = async () => {
         if (!username.trim() || username.trim().length < 3) {
@@ -93,21 +113,23 @@ export default function Profile() {
                         <h4 className='profile-username'>{user.username}</h4>
                         <h6 className='profile-email' >{user.email}</h6>
                         <div className="profile_stats">
+                            {/* Replaced with Dynamic Stats */}
                             <div className="stats">
-                                <h2 className='profile_scores'>{user.stats.totalAttempts}</h2>
+                                <h2 className='profile_scores'>{totalAttempts}</h2>
                                 <span className='profile_tags'>Design</span>
                             </div>
                             <div className="stats">
-                                <h2 className='profile_scores'>{user.stats.averageScore}</h2>
+                                <h2 className='profile_scores'>{avgScore}</h2>
                                 <span className='profile_tags'>Avg Score</span>
                             </div>
                             <div className="stats">
-                                <h2 className='profile_scores'>{user.stats.bestScore}</h2>
+                                <h2 className='profile_scores'>{bestScore}</h2>
                                 <span className='profile_tags'>Best</span>
                             </div>
                         </div>
                     </div>
                 </div>
+                
                 <div className="profile_username_change profile_border">
                     <h4 className='change_username'>👤 Change Username</h4>
                     <input
@@ -116,8 +138,11 @@ export default function Profile() {
                         onChange={(e) => setUsername(e.target.value)} minLength={3} required
                     />
                     <span className='message'>{unMsg}</span>
-                    <button onClick={handleUsernameUpdate} className='updatebutton'>Save Username</button>
+                    <button onClick={handleUsernameUpdate} className='updatebutton' disabled={savingUn}>
+                        {savingUn ? "Saving..." : "Save Username"}
+                    </button>
                 </div>
+
                 <div className="profile_password_change profile_border">
                     <h4 className='change_username'>🔐 Change Password</h4>
                     <div className="inputWrapper">
@@ -146,7 +171,9 @@ export default function Profile() {
                         onChange={(e) => setConfirmNewPassword(e.target.value)}
                     />
                     <span className='message'>{psMsg}</span>
-                    <button onClick={handlePasswordUpdate} className='updatebutton'>Update Password</button>
+                    <button onClick={handlePasswordUpdate} className='updatebutton' disabled={savingPs}>
+                        {savingPs ? "Updating..." : "Update Password"}
+                    </button>
                 </div>
 
                 <div className="account_info profile_border">
@@ -160,13 +187,14 @@ export default function Profile() {
                             <h6 className='detail_tag'>MEMBER SINCE</h6>
                             <span className='details'>{formatted}</span>
                         </div>
+                        {/* Replaced with Dynamic Stats */}
                         <div className="account_d">
                             <h6 className='detail_tag'>DESIGN SUBMITTED</h6>
-                            <span className='details'>{user.stats.totalAttempts}</span>
+                            <span className='details'>{totalAttempts}</span>
                         </div>
                         <div className="account_d">
                             <h6 className='detail_tag'>AVERAGE SCORE</h6>
-                            <span className='details'>{user.stats.averageScore} / 10</span>
+                            <span className='details'>{avgScore} / 10</span>
                         </div>
                     </div>
                 </div>
@@ -176,20 +204,24 @@ export default function Profile() {
     )
 };
 
-function InputField(rightEl) {
-    <div style={{ position: "relative" }}>
-        <span style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", fontSize: 15, opacity: 0.4, pointerEvents: "none" }}>
-            {icon}
-        </span>
-        <input
-            type={type}
-            placeholder={placeholder}
-            value={value}
-            onChange={onChange}
-            style={{ width: "100%", background: "var(--bg-card)", border: "1.5px solid var(--border)", borderRadius: 10, color: "var(--text)", fontFamily: "var(--font-main)", fontSize: 14, padding: "12px 14px 12px 42px", outline: "none", transition: "all 0.2s" }}
-            onFocus={e => { e.target.style.borderColor = "#2563EB"; e.target.style.background = "rgba(37,99,235,0.08)"; e.target.style.boxShadow = "0 0 0 3px rgba(37,99,235,0.12)"; }}
-            onBlur={e => { e.target.style.borderColor = "var(--border)"; e.target.style.background = "var(--bg-card)"; e.target.style.boxShadow = "none"; }}
-        />
-        {rightEl}
-    </div>
+// ── Fixed InputField Component ──────────────────────────────────────────────
+// Added the return statement and destructured the props correctly
+function InputField({ icon, type, placeholder, value, onChange, rightEl }) {
+    return (
+        <div style={{ position: "relative" }}>
+            <span style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", fontSize: 15, opacity: 0.4, pointerEvents: "none" }}>
+                {icon}
+            </span>
+            <input
+                type={type}
+                placeholder={placeholder}
+                value={value}
+                onChange={onChange}
+                style={{ width: "100%", background: "var(--bg-card)", border: "1.5px solid var(--border)", borderRadius: 10, color: "var(--text)", fontFamily: "var(--font-main)", fontSize: 14, padding: "12px 14px 12px 42px", outline: "none", transition: "all 0.2s" }}
+                onFocus={e => { e.target.style.borderColor = "#2563EB"; e.target.style.background = "rgba(37,99,235,0.08)"; e.target.style.boxShadow = "0 0 0 3px rgba(37,99,235,0.12)"; }}
+                onBlur={e => { e.target.style.borderColor = "var(--border)"; e.target.style.background = "var(--bg-card)"; e.target.style.boxShadow = "none"; }}
+            />
+            {rightEl}
+        </div>
+    );
 }

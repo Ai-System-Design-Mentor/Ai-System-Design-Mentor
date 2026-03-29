@@ -17,6 +17,18 @@ export default function Dashboard() {
             .finally(() => setLoading(false));
     }, []);
 
+    // ─── DYNAMIC STATS CALCULATION ──────────────────────────────────────
+    const totalAttempts = attempts.length;
+    
+    const bestScore = totalAttempts > 0 
+        ? Math.max(...attempts.map(a => parseFloat(a.score) || 0)).toFixed(1) 
+        : "0.0";
+        
+    const avgScore = totalAttempts > 0 
+        ? (attempts.reduce((sum, a) => sum + (parseFloat(a.score) || 0), 0) / totalAttempts).toFixed(1) 
+        : "0.0";
+    // ────────────────────────────────────────────────────────────────────
+
     const chartData = attempts.slice(-10);
     const W = 460, H = 110, P = 20;
     const minS = 0, maxS = 10;
@@ -45,17 +57,17 @@ export default function Dashboard() {
                 <div className="dashboard_stats">
                     <div className="dashboardstats stats1">
                         <h4 className="stats_title">🏆 Problems Solved</h4>
-                        <span className="stats_score">{user.stats.totalAttempts}</span>
-                        <h4 className="stats_base">Total Attemps</h4>
+                        <span className="stats_score">{totalAttempts}</span>
+                        <h4 className="stats_base">Total Attempts</h4>
                     </div>
                     <div className="dashboardstats stats2">
                         <h4 className="stats_title">📈 Avg. Score</h4>
-                        <span className="stats_score">{user.stats.averageScore}</span>
+                        <span className="stats_score">{avgScore}</span>
                         <h4 className="stats_base">Out of 10</h4>
                     </div>
                     <div className="dashboardstats stats3">
                         <h4 className="stats_title">⭐ Best Score</h4>
-                        <span className="stats_score">{user.stats.bestScore}</span>
+                        <span className="stats_score">{bestScore}</span>
                         <h4 className="stats_base">Personal Best</h4>
                     </div>
                 </div>
@@ -104,7 +116,7 @@ export default function Dashboard() {
 
                         <div className="progressLower">
                             <h6 style={{ fontSize1: 12, color: "#888", fontWeight: 200 }}>Attemps Number</h6>
-                            <h6 style={{ fontSize1: 12, color: "#888", fontWeight: 200 }}>Best Score : <span style={{ color: "green", fontWeight: 300 }}>{user.stats.bestScore}</span></h6>
+                            <h6 style={{ fontSize1: 12, color: "#888", fontWeight: 200 }}>Best Score : <span style={{ color: "green", fontWeight: 300 }}>{bestScore}</span></h6>
                         </div>
                     </div>
                     <div className="skills dashboard_border">
@@ -130,7 +142,7 @@ export default function Dashboard() {
                 <div className="history dashboard_border" >
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
                         <div style={{ fontWeight: 700, fontSize: 15 }}>Recent Attempts</div>
-                        <span style={{ fontSize: 12, color: "var(--text-muted)" }}>{user.stats.totalAttempts} total</span>
+                        <span style={{ fontSize: 12, color: "var(--text-muted)" }}>{totalAttempts} total</span>
                     </div>
                     <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
                         {[...attempts].reverse().slice(0, 6).map((a, i) => {
