@@ -108,7 +108,7 @@
     justify-content: space-between;
 }
 
-path {
+.path {
     stroke-dasharray: 1000;
     stroke-dashoffset: 1000;
     animation: draw 2s ease forwards;

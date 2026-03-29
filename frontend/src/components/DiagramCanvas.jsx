@@ -210,14 +210,14 @@ export default function DiagramCanvas({ onDiagramChange }) {
         const my = (e.clientY - rect.top - pan.y) / zoom;
         const node = nodes.find((n) => n.id === id);
         setDrag({ id, ox: mx - node.x, oy: my - node.y });
-        setSelected(e.shiftKey
-            ? (s) => {
+        setSelected((prev) => {
+            if(e.shiftKey) {
                 const next = new Set(s);
                 next.has(id) ? next.delete(id) : next.add(id);
                 return next;
             }
-            : new Set([id])
-        );
+            return new Set([id])
+        });
     }
 
     // Label editing
@@ -276,6 +276,12 @@ export default function DiagramCanvas({ onDiagramChange }) {
 
     // Edge geometry
     function center(node) { return { x: node.x + 59, y: node.y + 40 }; }
+
+    // Highlight edges when a node is selected
+    const highlightedEdgesIds = new Set(
+        edges.filter((ed) => selected.has(ed.from) || selected.has(ed.to))
+            .map((ed) => ed.id)
+    );
 
     const cursor =
         isPanning || tool === "pan" ? "grabbing" :
@@ -367,10 +373,12 @@ export default function DiagramCanvas({ onDiagramChange }) {
                     </div>
 
                     <div style={{ flex: 1 }} />
-                    <span style={{ fontSize: 11, color: "var(--text-faint)", padding: "0 8px" }}>
+                    <span style={{ fontSize: 11, color: "#F97316", padding: "0 8px" }}>↗ Incoming</span>
+                    <span style={{ fontSize: 11, color: "#22C55E", padding: "0 8px" }}>↙ OutGoing</span>
+                    <span style={{ fontSize: 11, color: "var(--text-muted)", padding: "0 8px" }}>
                         {nodes.length} nodes · {edges.length} edges
                     </span>
-                    <button className={`${s.toolBtn} ${s.toolDanger}`} onClick={clearAll}>
+                    <button className={`${s.toolBtn} ${s.toolDanger}`} style={{color : "var(--danger)"}} onClick={clearAll}>
                         Clear
                     </button>
                 </div>
@@ -394,11 +402,11 @@ export default function DiagramCanvas({ onDiagramChange }) {
 
                     {nodes.length === 0 && (
                         <div className={s.empty}>
-                            <div style={{ fontSize: 56, opacity: 0.2, marginBottom: 14 }}>🏗️</div>
-                            <div style={{ fontSize: 15, fontWeight: 600, color: "var(--text-faint)" }}>
+                            <div style={{ fontSize: 56, opacity: 0.4, marginBottom: 14 }}>🏗️</div>
+                            <div style={{ fontSize: 15, fontWeight: 600, color: "var(--text)", opacity: 0.3 }}>
                                 Click components on the left to start
                             </div>
-                            <div style={{ fontSize: 12, color: "var(--text-faint)", marginTop: 5 }}>
+                            <div style={{ fontSize: 12, color: "var(--text)", marginTop: 5, opacity:0.3 }}>
                                 Use Connect tool (C) to draw arrows between nodes
                             </div>
                         </div>
@@ -417,9 +425,28 @@ export default function DiagramCanvas({ onDiagramChange }) {
                             pointerEvents: "none", zIndex: 1, overflow: "visible",
                         }}>
                             <defs>
+                                {/* Normal Arrow visible  */}
                                 <marker id="arrowNormal" markerWidth="8" markerHeight="6"
                                     refX="7" refY="3" orient="auto">
-                                    <polygon points="0 0, 8 3, 0 6" fill="var(--text-faint)" />
+                                    <polygon points="0 0, 8 3, 0 6" fill="#94a3b8" />
+                                </marker>
+
+                                {/* Highlighted Arrow visible */}
+                                <marker id="arrowHighlight" markerWidth="8" markerHeight="6"
+                                    refX="7" refY="3" orient="auto">
+                                    <polygon points="0 0, 8 3, 0 6" fill="#2563EB" />
+                                </marker>
+
+                                {/* Outgoing Arrow visible */}
+                                <marker id="arrowOut" markerWidth="8" markerHeight="6"
+                                    refX="7" refY="3" orient="auto">
+                                    <polygon points="0 0, 8 3, 0 6" fill="#22C55E" />
+                                </marker>
+
+                                {/* Incoming Arrow visible */}
+                                <marker id="arrowIn" markerWidth="8" markerHeight="6"
+                                    refX="7" refY="3" orient="auto">
+                                    <polygon points="0 0, 8 3, 0 6" fill="#F97316" />
                                 </marker>
                             </defs>
                             {edges.map((ed) => {
@@ -430,26 +457,37 @@ export default function DiagramCanvas({ onDiagramChange }) {
                                 const mx = (f.x + t.x) / 2, my = (f.y + t.y) / 2;
                                 const dx = t.x - f.x, dy = t.y - f.y;
                                 const cx = mx - dy * 0.12, cy = my + dx * 0.12;
+
+                                const isHighlighted = highlightedEdgesIds.has(ed.id);
+                                const isOutgoing = isHighlighted && selected.has(ed.from);
+                                const isIncoming = isHighlighted && selected.has(ed.to);
+
+                                const edgeColor = isOutgoing  ? "#22C55E" : isIncoming  ? "#F97316" : "#94a3b8";
+
+                                const arrowId = isOutgoing ? "arrowOut"
+                                : isIncoming ? "arrowIn"
+                                : "arrowNormal";
+
+                                const strokeWidth = isHighlighted ? 3 : 2;
+                                const opacity     = isHighlighted ? 1 : 0.6;
+
                                 return (
                                     <g key={ed.id} style={{ pointerEvents: "all" }}>
                                         <path
                                             d={`M${f.x},${f.y} Q${cx},${cy} ${t.x},${t.y}`}
-                                            fill="none" stroke="transparent" strokeWidth="14"
-                                            style={{ cursor: "pointer" }}
+                                            fill="none" stroke={edgeColor} strokeWidth={strokeWidth}
+                                            strokeDasharray={isHighlighted ? "none" : "5, 3"} markerEnd={`url(#${arrowId})`}
+                                            opacity={opacity}
+                                            style={{transition: "stroke 0.2s, opacity 0.2s"}}
                                             onClick={() => removeEdge(ed.id)}
                                         />
-                                        <path
-                                            d={`M${f.x},${f.y} Q${cx},${cy} ${t.x},${t.y}`}
-                                            fill="none" stroke="var(--border)" strokeWidth="2"
-                                            strokeDasharray="6,4" markerEnd="url(#arrowNormal)"
-                                        />
-                                        <circle cx={mx} cy={my} r="7"
-                                            fill="var(--bg-card)" stroke="var(--border)" strokeWidth="1.5"
+                                        <circle cx={mx} cy={my} r="6.5"
+                                            fill="var(--bg-card)" stroke="var(--danger)" strokeWidth="1.5"
                                             style={{ cursor: "pointer" }}
                                             onClick={() => removeEdge(ed.id)}
                                         />
                                         <text x={mx} y={my + 4} textAnchor="middle"
-                                            fontSize="9" fill="var(--text-faint)"
+                                            fontSize="9" fill="var(--danger)"
                                             style={{ pointerEvents: "all", cursor: "pointer" }}
                                             onClick={() => removeEdge(ed.id)}>✕</text>
                                     </g>
@@ -461,6 +499,12 @@ export default function DiagramCanvas({ onDiagramChange }) {
                         {nodes.map((node) => {
                             const isSel = selected.has(node.id);
                             const isCon = connecting === node.id;
+
+                            const nodeEdges = edges.filter((ed) => ed.from === node.id || ed.to == node.id);
+                            const outgoing = edges.filter((ed) => ed.from === node.id).length;
+                            const incoming = edges.filter((ed) => ed.to === node.id).length;
+                            const hasEdges = nodeEdges.length > 0;
+
                             return (
                                 <div
                                     key={node.id}
@@ -501,6 +545,21 @@ export default function DiagramCanvas({ onDiagramChange }) {
                                     ) : node.label ? (
                                         <div className={s.nodeLabel}>{node.label}</div>
                                     ) : null}
+
+                                    {hasEdges && (
+                                        <div className={s.edgeBadges}>
+                                            {outgoing > 0 && (
+                                                <span className={s.badgeOut} title={`${outgoing} outgoing`}>
+                                                ↗ {outgoing}
+                                                </span>
+                                            )}
+                                            {incoming > 0 && (
+                                                <span className={s.badgeIn} title={`${incoming} incoming`}>
+                                                ↙ {incoming}
+                                                </span>
+                                            )}
+                                        </div>
+                                    )}
                                 </div>
                             );
                         })}
