@@ -68,10 +68,11 @@ export default function AuthPage() {
         try {
             if (mode === "login") {
                 await login(form.email, form.password);
+                navigate(from, { replace: true });
             } else {
                 await register(form.username, form.email, form.password);
+                setTimeout(() => {switchMode("login")}, 500);
             }
-            navigate(from, { replace: true });
         } catch (err) {
             setError(err.message || "Something went wrong. Please try again.");
         }

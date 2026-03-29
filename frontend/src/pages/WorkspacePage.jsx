@@ -6,11 +6,13 @@ import AIMentorChat from '../components/AIMentorChat';
 import './WorkSpace.css';
 import '../index.css';
 import { toPng } from 'html-to-image';
+import { DEFAULT_PROBLEMS } from '../utils/constant';
 
 export default function WorkspacePage() {
     const navigate = useNavigate();
     const [params] = useSearchParams();
-    
+    const DEFAULT_PROBLEM = DEFAULT_PROBLEMS[0];
+
     // 1. Reference to the diagram container for screenshotting
     const diagramRef = useRef(null);
 
@@ -19,8 +21,8 @@ export default function WorkspacePage() {
     const titleParams = params.get("title");
     const timerParams = params.get("estimatedTime");
 
-    const [problemTitle, setProblemTitle] = useState(titleParams || customQ || "System Design");
-    const [problemTime, setProblemTime] = useState(Number(timerParams) || 70);
+    const [problemTitle, setProblemTitle] = useState(titleParams || customQ || DEFAULT_PROBLEM.title);
+    const [problemTime, setProblemTime] = useState(Number(timerParams) || DEFAULT_PROBLEM.time);
     const [problemInfo, setProblemInfo] = useState(null);
     const [loadingProblem, setLoadingProblem] = useState(false);
     const [explanation, setExplanation] = useState("");
@@ -88,9 +90,9 @@ export default function WorkspacePage() {
             timer > 1800 ? "#F97316" : "var(--text)";
 
     const colors =
-        problemInfo?.difficulty === "Easy" ? "34,197,94" :
-            problemInfo?.difficulty === "Medium" ? "234,179,8" :
-                problemInfo?.difficulty === "Hard" ? "239,68,68" : "239,68,68";
+        (problemInfo?.difficulty || DEFAULT_PROBLEM.difficulty) === "Easy" ? "34,197,94" :
+            (problemInfo?.difficulty || DEFAULT_PROBLEM.difficulty) === "Medium" ? "234,179,8" :
+                (problemInfo?.difficulty || DEFAULT_PROBLEM.difficulty) === "Hard" ? "239,68,68" : "239,68,68";
 
     async function handleSubmit() {
         if (diagramData.nodes.length < 2) {
@@ -107,7 +109,7 @@ export default function WorkspacePage() {
             let base64Image = "";
             if (diagramRef.current) {
                 // Background color ensures the image isn't transparent (change hex to match your app's theme if needed)
-                base64Image = await toPng(diagramRef.current, { backgroundColor: '#1e1e1e' }); 
+                base64Image = await toPng(diagramRef.current, { backgroundColor: '#1e1e1e' });
             }
 
             // 3. Send image to the backend
@@ -120,7 +122,7 @@ export default function WorkspacePage() {
                 timeTaken: timer,
                 diagramImage: base64Image, // <--- Image string is attached here
             });
-            
+
             navigate(`/result/${attemptId}`, { state: { evaluation, problemTitle } });
         } catch (error) {
             console.log(error.message || "Submission failed. Please try again.");
@@ -140,6 +142,9 @@ export default function WorkspacePage() {
                     {customQ && <span style={{ color: "purple" }}>Custom</span>}
                     {slug && problemInfo?.difficulty && (
                         <span style={{ background: `rgba(${colors}, 0.2)`, color: `rgba(${colors})`, paddingLeft: 10, paddingRight: 10, paddingTop: 3, paddingBottom: 3, borderRadius: 7, fontSize: 10 }}>{problemInfo.difficulty}</span>
+                    )}
+                    {DEFAULT_PROBLEM && DEFAULT_PROBLEM?.difficulty && (
+                        <span style={{ background: `rgba(${colors}, 0.2)`, color: `rgba(${colors})`, paddingLeft: 10, paddingRight: 10, paddingTop: 3, paddingBottom: 3, borderRadius: 7, fontSize: 10 }}>{DEFAULT_PROBLEM.difficulty}</span>
                     )}
                     {loadingProblem && (
                         <span style={{ fontSize: 12, color: "var(--text-muted)" }} className="pulse">
