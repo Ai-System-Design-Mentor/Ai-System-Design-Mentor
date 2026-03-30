@@ -25,6 +25,18 @@ const userSchema = new mongoose.Schema(
             minlength: [6, "Password must be at least 6 characters"],
             select: false,
         },
+
+          // store temporarily after verify remove it 
+        regOTP:        { type: String, select: false },
+        regOTPExpires: { type: Date,   select: false },
+        regOTPAttempts:{ type: Number, default: 0    },
+        isVerified:    { type: Boolean, default: false }, // true after OTP confirmed
+
+        passwordResetOTP:        { type: String, select: false },
+        passwordResetOTPExpires: { type: Date,   select: false },
+        passwordResetAttempts:   { type: Number, default: 0    },
+        passwordResetLockedUntil:{ type: Date                  },
+
         stats: {
             totalAttempts: { type: Number, default: 0 },
             averageScore: { type: Number, default: 0.0 },

@@ -119,9 +119,10 @@ export default function WorkspacePage() {
                 isCustomProblem: !!customQ,
                 diagramData,
                 textExplanation: explanation,
-                timeTaken: timer,
+                timeTaken:  timer,
                 diagramImage: base64Image, // <--- Image string is attached here
             });
+            
 
             navigate(`/result/${attemptId}`, { state: { evaluation, problemTitle } });
         } catch (error) {
