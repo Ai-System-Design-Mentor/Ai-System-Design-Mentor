@@ -112,6 +112,8 @@ export default function WorkspacePage() {
                 base64Image = await toPng(diagramRef.current, { backgroundColor: '#1e1e1e' });
             }
 
+            const timeTaken = Math.max(0, (problemTime * 60) - timer);
+
             // 3. Send image to the backend
             const { attemptId, evaluation } = await designsApi.submit({
                 problemSlug: slug || null,
@@ -119,7 +121,7 @@ export default function WorkspacePage() {
                 isCustomProblem: !!customQ,
                 diagramData,
                 textExplanation: explanation,
-                timeTaken: timer,
+                timeTaken,
                 diagramImage: base64Image, // <--- Image string is attached here
             });
 
