@@ -1,274 +1,337 @@
-const Attempt               = require("../models/Attempt");
-const Problem               = require("../models/Problem");
-const User                  = require("../models/User");
-const STANDARD_DESIGNS      = require("../data/standardDesigns");
+const Attempt = require("../models/Attempt");
+const Problem = require("../models/Problem");
+const User = require("../models/User");
+const STANDARD_DESIGNS = require("../data/standardDesigns");
 const { callForEvaluation, callForProblem } = require("../utils/aiClient");
 
-// ─── POST /api/designs/submit ──────────────────────────────────────────────
+// ─── POST /api/designs/submit
 exports.submitDesign = async (req, res) => {
-  try {
-    const {
-      problemSlug,
-      problemTitle,
-      isCustomProblem,
-      diagramData,
-      textExplanation,
-      timeTaken,
-      diagramImage,       // base64 screenshot from frontend (html-to-image)
-    } = req.body;
-
-    if (!problemTitle?.trim())
-      return res.status(400).json({ error: "Problem title is required." });
-    if (!diagramData?.nodes?.length || diagramData.nodes.length < 2)
-      return res.status(400).json({ error: "Please add at least 2 components to your diagram." });
-
-    // Build human-readable diagram description for the prompt
-    const nodeList = diagramData.nodes.map((n) => n.type).join(", ");
-    const edgeList = diagramData.edges
-      .map((e) => {
-        const f = diagramData.nodes.find((n) => n.id === e.from)?.type || e.from;
-        const t = diagramData.nodes.find((n) => n.id === e.to)?.type   || e.to;
-        return `${f} → ${t}`;
-      })
-      .join("; ");
-
-    // ─────────────────────────────────────────────────────────────────────
-    // STEP 1: RESOLVE REFERENCE DESIGN
-    //  TIER 1 — In-memory STANDARD_DESIGNS (preset problems)
-    //  TIER 2 — MongoDB (catches previously AI-generated and cached problems)
-    //  TIER 3 — AI generates + saves to MongoDB for next user
-    // ─────────────────────────────────────────────────────────────────────
-    let standardDesign = null;
-    let matchInfo      = null;
-    let dbProblem      = null;
-
-    // TIER 1: In-memory preset
-    if (!isCustomProblem && problemSlug && STANDARD_DESIGNS[problemSlug]) {
-      standardDesign = STANDARD_DESIGNS[problemSlug];
-      matchInfo = { tier: 1, source: "preset-memory", slug: problemSlug };
-      console.info(`[Design] TIER 1: "${problemTitle}" → in-memory preset standard design`);
-    }
-
-    // TIER 2: MongoDB lookup
-    if (!standardDesign) {
-      const lookupSlug = problemSlug || deriveProblemSlug(problemTitle);
-      dbProblem = await Problem.findOne({ slug: lookupSlug }).lean();
-      if (dbProblem?.standardDesign?.criticalComponents?.length) {
-        standardDesign = dbProblem.standardDesign;
-        matchInfo = { tier: 2, source: "db-cache", slug: lookupSlug };
-        console.info(`[Design] TIER 2: "${problemTitle}" → found in MongoDB (slug: "${lookupSlug}")`);
-      }
-    }
-
-    // TIER 3: AI generates reference + saves
-    if (!standardDesign) {
-      const derivedSlug = problemSlug || deriveProblemSlug(problemTitle);
-      console.info(`[Design] TIER 3: "${problemTitle}" → not in DB, generating via AI...`);
-      try {
-        const generatedDesign = await generateStandardDesignViaAI(problemTitle);
-        if (generatedDesign) {
-          standardDesign = generatedDesign;
-          matchInfo = { tier: 3, source: "ai-generated" };
-          try {
-            await Problem.findOneAndUpdate(
-              { slug: derivedSlug },
-              {
-                $setOnInsert: {
-                  slug:           derivedSlug,
-                  title:          problemTitle,
-                  description:    generatedDesign.summary || "",
-                  standardDesign: generatedDesign,
-                  isCustom:       true,
-                  difficulty:     "Medium",
-                  estimatedTime:  45,
-                  tags:           ["Custom"],
-                },
-              },
-              { upsert: true, new: true }
-            );
-            console.info(`[Design] TIER 3: Saved "${derivedSlug}" to MongoDB — next user gets it free`);
-          } catch (saveErr) {
-            if (saveErr.code !== 11000) {
-              console.warn(`[Design] TIER 3: Failed to save to MongoDB:`, saveErr.message);
-            }
-          }
-        }
-      } catch (aiErr) {
-        console.warn(`[Design] TIER 3: AI reference generation failed: ${aiErr.message}`);
-        matchInfo = { tier: 3, source: "failed" };
-      }
-    }
-
-    // ── Build evaluation prompt ────────────────────────────────────────────
-    const prompt = buildEvaluationPrompt({
-      problemTitle,
-      nodeList,
-      edgeList,
-      textExplanation,
-      standardDesign,
-      matchInfo,
-    });
-
-    // ── Call AI for evaluation ─────────────────────────────────────────────
-    const result = await callForEvaluation({
-      messages: [{ role: "user", content: prompt }],
-    });
-
-    // ── Parse JSON response safely ─────────────────────────────────────────
-    let evaluation;
-    const rawText = result.text;   // FIX: was "message.text" — variable is "result"
     try {
-      const clean = rawText
-        .replace(/```json[\s\S]*?```|```[\s\S]*?```/g,
-          (m) => m.replace(/```json?\n?/g, "").replace(/\n?```/g, ""))
-        .trim();
-      evaluation = JSON.parse(clean);
-    } catch {
-      const match = rawText.match(/\{[\s\S]+\}/);
-      if (!match) {
-        return res.status(500).json({
-          error: "AI returned an unexpected format. Please try submitting again.",
+        const {
+            problemSlug,
+            problemTitle,
+            isCustomProblem,
+            diagramData,
+            textExplanation,
+            timeTaken,
+            diagramImage
+        } = req.body;
+
+        if (!problemTitle?.trim())
+            return res.status(400).json({ error: "Problem title is required." });
+        if (!diagramData?.nodes?.length || diagramData.nodes.length < 2)
+            return res.status(400).json({ error: "Please add at least 2 components to your diagram." });
+
+        // Build human-readable diagram description for the prompt
+        const nodeList = diagramData.nodes.map((n) => n.type).join(", ");
+        const edgeList = diagramData.edges
+            .map((e) => {
+                const f = diagramData.nodes.find((n) => n.id === e.from)?.type || e.from;
+                const t = diagramData.nodes.find((n) => n.id === e.to)?.type || e.to;
+                return `${f} → ${t}`;
+            })
+            .join("; ");
+        console.log(nodeList);
+        console.log("Edges List");
+        console.log(edgeList);
+
+
+        // ─────────────────────────────────────────────────────────────────────
+        // STEP 1: RESOLVE REFERENCE DESIGN
+        //  TIER 1 — Check in-memory STANDARD_DESIGNS (preset problems only)
+        //  TIER 2 — Check MongoDB (catches previously AI-generated custom problems)
+        //  TIER 3 — AI generates the standard design + saves it to MongoDB
+        //           so the NEXT user who submits the same custom problem gets it
+        //           from Tier 2 for free
+        // ─────────────────────────────────────────────────────────────────────
+        let standardDesign = null;
+        let matchInfo = null;
+        let dbProblem = null;
+        // ── TIER 1: In-memory preset (YouTube, Uber, WhatsApp ...)
+        // for the standardf problems
+        if (!isCustomProblem && problemSlug && STANDARD_DESIGNS[problemSlug]) {
+            standardDesign = STANDARD_DESIGNS[problemSlug];
+            matchInfo = { tier: 1, source: "preset-memory", slug: problemSlug };
+            console.info(`[Design] TIER 1: "${problemTitle}" → in-memory preset standard design`);
+        }
+        // ── TIER 2: MongoDB lookup ─────────────────────────────────────────────
+        // Covers:
+        //   a) Preset problems that also exist in DB (richer data)
+        //   b) Custom problems previously generated by AI and saved
+        if (!standardDesign) { // if not found in static presets, check DB
+            // Build the slug to look up
+            const lookupSlug = problemSlug || deriveProblemSlug(problemTitle);
+
+            dbProblem = await Problem.findOne({ slug: lookupSlug }).lean(); // check in db
+
+            if (dbProblem?.standardDesign?.criticalComponents?.length) {
+                standardDesign = dbProblem.standardDesign;
+                matchInfo = { tier: 2, source: "db-cache", slug: lookupSlug };
+                console.info(`[Design] TIER 2: "${problemTitle}" → found in MongoDB (slug: "${lookupSlug}")`);
+            }
+        }
+        // ── TIER 3: AI generates reference + saves to MongoDB ─────────────────
+        // After generation: saves to DB so next user gets it free from Tier 2
+        if (!standardDesign) {
+            const derivedSlug = problemSlug || deriveProblemSlug(problemTitle);
+            console.info(`[Design] TIER 3: "${problemTitle}" → not in DB, generating reference via AI...`);
+            try {
+                const generatedDesign = await generateStandardDesignViaAI(problemTitle); // gen the design
+                if (generatedDesign) {
+                    standardDesign = generatedDesign;
+                    matchInfo = { tier: 3, source: "ai-generated" };
+                    // Save to MongoDB so next user gets this from Tier 2 (free)
+                    try {
+                        await Problem.findOneAndUpdate(
+                            { slug: derivedSlug },
+                            {
+                                $setOnInsert: { // only insert if not exist
+                                    slug: derivedSlug,
+                                    title: problemTitle,
+                                    description: generatedDesign.summary || "",
+                                    standardDesign: generatedDesign,
+                                    isCustom: true,
+                                    difficulty: "Medium",
+                                    estimatedTime: 45,
+                                    tags: ["Custom"],
+                                },
+                            },
+                            { upsert: true, new: true }
+                        );
+                        console.info(`[Design] TIER 3: Saved "${derivedSlug}" to MongoDB — next user gets it free`);
+                    } catch (saveErr) {
+                        // Duplicate key = race condition (two users submitted same problem simultaneously)
+                        // Not a problem — both get evaluated, DB already has it or will have it
+                        if (saveErr.code !== 11000) {
+                            console.warn(`[Design] TIER 3: Failed to save to MongoDB:`, saveErr.message);
+                        }
+                    }
+                }
+            } catch (aiErr) {
+                // AI generation failed — evaluate without a reference
+                console.warn(`[Design] TIER 3: AI reference generation failed: ${aiErr.message}`);
+                matchInfo = { tier: 3, source: "failed" };
+            }
+        }
+
+        //  Build evaluation prompt
+        const prompt = buildEvaluationPrompt({
+            problemTitle,
+            nodeList,
+            edgeList,
+            textExplanation,
+            standardDesign,
+            matchInfo,
         });
-      }
-      evaluation = JSON.parse(match[0]);
+
+        //  Call AI for evaluation
+        const message = await callForEvaluation({
+            max_tokens: 1500,
+            messages: [{ role: "user", content: prompt }],
+        });
+
+        //  Parse JSON response safely
+        let evaluation;
+        const rawText = message.text;
+        try {
+            const clean = rawText
+                .replace(/```json[\s\S]*?```|```[\s\S]*?```/g,
+                    (m) => m.replace(/```json?\n?/g, "").replace(/\n?```/g, ""))
+                .trim();
+            evaluation = JSON.parse(clean);
+        } catch {
+            const match = rawText.match(/\{[\s\S]+\}/);
+            if (!match) {
+                return res.status(500).json({
+                    error: "AI returned an unexpected format. Please try submitting again.",
+                });
+            }
+            evaluation = JSON.parse(match[0]);
+        }
+
+        // Persist attempt
+        const attempt = await Attempt.create({
+            user: req.user._id,
+            problem: dbProblem?._id || undefined,
+            problemTitle,
+            isCustomProblem: !!isCustomProblem,
+            diagramData,
+            diagramImage,
+            textExplanation: textExplanation || "",
+            score: evaluation.score,
+            summary: evaluation.summary,
+            strengths: evaluation.strengths || [],
+            improvements: evaluation.improvements || [],
+            weakAreas: evaluation.weakAreas || [],
+            referenceComponents: evaluation.referenceComponents || [],
+            missingCriticalComponents: evaluation.missingCriticalComponents || [],
+            antiPatternsFound: evaluation.antiPatternsFound || [],
+            scoringBreakdown: evaluation.scoringBreakdown || {},
+            comparisonWithStandard: evaluation.comparisonWithStandard || null,
+            timeTaken: timeTaken || 0,
+            status: "evaluated",
+        });
+
+        //  Update user stats and weak areas
+        const userDoc = await User.findById(req.user._id);
+
+        const newTotalScore = (userDoc.totalScore || 0) + evaluation.score;
+        const newAttempts = (userDoc.attempts || 0) + 1;
+
+        let updateData = {
+            totalScore: newTotalScore,
+            attempts: newAttempts,
+            avgScore: newTotalScore / newAttempts,
+        };
+
+        if (evaluation.weakAreas?.length) {
+            updateData.weakAreas = [
+                ...new Set([
+                    ...evaluation.weakAreas,
+                    ...(userDoc.weakAreas || [])
+                ])
+            ].slice(0, 5);
+        }
+
+        await User.findByIdAndUpdate(req.user._id, updateData);
+
+        res.status(201).json({
+            attemptId: attempt._id,
+            evaluation,
+            _matchInfo: matchInfo,
+            _provider: message.provider,
+        });
+
+
+
+    } catch (err) {
+        console.error("submitDesign:", err);
+        if (err?.status === 429) {
+            return res.status(429).json({
+                error: "AI service is busy. Please wait 30 seconds and try again.",
+                retryAfter: 30,
+            });
+        }
+        res.status(500).json({ error: "Evaluation failed. Please try again." });
     }
-
-    // ── Persist attempt ────────────────────────────────────────────────────
-    const attempt = await Attempt.create({
-      user:             req.user._id,
-      problem:          dbProblem?._id || undefined,
-      problemTitle,
-      isCustomProblem:  !!isCustomProblem,
-      diagramData,
-      diagramImage:     diagramImage || "",
-      textExplanation:  textExplanation || "",
-      score:            evaluation.score,
-      summary:          evaluation.summary,
-      strengths:        evaluation.strengths                    || [],
-      improvements:     evaluation.improvements                 || [],
-      weakAreas:        evaluation.weakAreas                    || [],
-      referenceComponents:       evaluation.referenceComponents        || [],
-      missingCriticalComponents: evaluation.missingCriticalComponents  || [],
-      antiPatternsFound:         evaluation.antiPatternsFound          || [],
-      scoringBreakdown:          evaluation.scoringBreakdown           || {},
-      comparisonWithStandard:    evaluation.comparisonWithStandard     || null,
-      timeTaken: timeTaken || 0,
-      status:    "evaluated",
-    });
-
-    // ── Update user stats ──────────────────────────────────────────────────
-    const userDoc = await User.findById(req.user._id);
-    // 1. Update weak areas IN MEMORY first (if any exist)
-    if (evaluation.weakAreas?.length) {
-      userDoc.weakAreas = [...new Set([
-        ...evaluation.weakAreas,
-        ...(userDoc.weakAreas || []),
-      ])].slice(0, 5);
-    }!
-    await userDoc.updateStats(evaluation.score);
-    // 3. We don't need to re-fetch! userDoc now holds the perfectly updated data.
-    const updatedStats = {
-      stats:     userDoc.stats,
-      weakAreas: userDoc.weakAreas,
-    };
-    res.status(201).json({
-      attemptId:    attempt._id,
-      evaluation,
-      updatedStats,    // FIX: included so frontend can refresh stats immediately
-      _matchInfo:   matchInfo,
-      _provider:    result.provider,   // FIX: was "message.provider" — variable is "result"
-    });
-
-  } catch (err) {
-    console.error("submitDesign:", err);
-    if (err?.status === 429) {
-      return res.status(429).json({
-        error: "AI service is busy. Please wait 30 seconds and try again.",
-        retryAfter: 30,
-      });
-    }
-    res.status(500).json({ error: "Evaluation failed. Please try again." });
-  }
 };
 
-// ─── Helpers ──────────────────────────────────────────────────────────────
-
 function deriveProblemSlug(title) {
-  return (title || "")
-    .toLowerCase()
-    .trim()
-    .replace(/^(design|build|create|make)\s+/i, "")
-    .replace(/[^a-z0-9\s-]/g, "")
-    .replace(/\s+/g, "-")
-    .replace(/-+/g, "-")
-    .slice(0, 80);
+    return (title || "")
+        .toLowerCase()
+        .trim()
+        .replace(/^(design|build|create|make)\s+/i, "")  // strip leading verb
+        .replace(/[^a-z0-9\s-]/g, "")                    // remove special chars
+        .replace(/\s+/g, "-")                             // spaces → hyphens
+        .replace(/-+/g, "-")                              // collapse multiple hyphens
+        .slice(0, 80);                                    // max length
 }
-
+// generate the desing from the Ai -->
 async function generateStandardDesignViaAI(systemName) {
-  const { text } = await callForProblem({
-    messages: [{
-      role: "user",
-      content: `You are a principal engineer at Google.
+    const { text } = await callForProblem({
+        max_tokens: 1200,
+        messages: [{
+            role: "user",
+            content: `You are a principal engineer at Google.
 Generate the industry-standard reference architecture for: "${systemName}".
-
-Think about what a well-funded company would actually build in production.
-Consider: core components, scalability, reliability, and common pitfalls.
 
 Return ONLY valid JSON (no markdown, no extra text):
 {
-  "summary": "<2 sentence description of the ideal architecture and its scale>",
-  "components": [
-    "<component 1 — ordered from client to backend to storage>",
-    "<component 2>",
-    "<up to 12 components total>"
+  "summary": "<2 sentence description>",
+  "components": ["<component 1>", "<up to 12 components>"],
+  "expectedEdges": [
+    "<ComponentA → ComponentB>",
+    "<up to 12 critical connections that must exist>"
   ],
-  "criticalComponents": [
-    "<4-6 components that are absolutely must-have for this system>"
-  ],
-  "antiPatterns": [
-    "<3-5 common mistakes engineers make for this type of system>"
-  ],
-  "scalabilityDecisions": [
-    "<3-4 key architectural decisions that make this system scale>"
-  ],
-  "faultToleranceMechanisms": [
-    "<2-3 reliability mechanisms the production system should have>"
-  ]
-}`,
-    }],
-  });
-
-  const clean = text
-    .replace(/```json[\s\S]*?```|```[\s\S]*?```/g,
-      (m) => m.replace(/```json?\n?/g, "").replace(/\n?```/g, ""))
-    .trim();
-
-  try {
-    return JSON.parse(clean);
-  } catch {
-    const match = clean.match(/\{[\s\S]+\}/);
-    return match ? JSON.parse(match[0]) : null;
+  "criticalComponents": ["<4-6 must-have components>"],
+  "antiPatterns": ["<3-5 common mistakes>"],
+  "scalabilityDecisions": ["<3-4 key scaling decisions>"],
+  "faultToleranceMechanisms": ["<2-3 reliability mechanisms>"],
+  "estimatedScale": {
+    "dau": "<daily active users>",
+    "requestsPerDay": "<request volume>",
+    "storageNeeds": "<storage estimate>"
   }
+}`,
+        }],
+    });
+
+    const clean = text
+        .replace(/```json[\s\S]*?```|```[\s\S]*?```/g,
+            (m) => m.replace(/```json?\n?/g, "").replace(/\n?```/g, ""))
+        .trim();
+
+    try {
+        return JSON.parse(clean);
+    } catch {
+        const match = clean.match(/\{[\s\S]+\}/);
+        return match ? JSON.parse(match[0]) : null;
+    }
 }
 
-function buildEvaluationPrompt({ problemTitle, nodeList, edgeList, textExplanation, standardDesign, matchInfo }) {
-  let refSection;
+// Evaluation prompt builder
+function buildEvaluationPrompt({
+    problemTitle,
+    nodeList,
+    edgeList,
+    textExplanation,
+    standardDesign,
+    matchInfo,
+}) {
+    let refSection;
 
-  if (standardDesign?.components?.length) {
-    const sourceLabel =
-      matchInfo?.tier === 1 ? "STORED PRESET — industry standard design" :
-      matchInfo?.tier === 2 ? "MONGODB CACHE — previously generated and stored" :
-      matchInfo?.tier === 3 ? "AI-GENERATED — just created and saved to DB for future users" :
-      "REFERENCE DESIGN";
+    if (standardDesign?.components?.length) {
+        const sourceLabel =
+            matchInfo?.tier === 1 ? "STORED PRESET — industry standard design" :
+                matchInfo?.tier === 2 ? "MONGODB CACHE — previously generated and stored" :
+                    matchInfo?.tier === 3 ? "AI-GENERATED — just created and saved to DB for future users" :
+                        "REFERENCE DESIGN";
 
-    refSection = `## REFERENCE DESIGN (${sourceLabel})
+        // ── Scale context string
+        const scaleContext = standardDesign.estimatedScale
+            ? Object.entries(standardDesign.estimatedScale)
+                .map(([k, v]) => `${k}: ${v}`)
+                .join(" | ")
+            : null;
+
+        // ── Top 2 key flows formatted
+        const flowEntries = Object.entries(standardDesign.keyFlows || {}).slice(0, 2);
+        const flowSection = flowEntries.length
+            ? `Expected data flows (check if user's edges follow these paths):\n` +
+            flowEntries.map(([name, steps]) =>
+                `  [${name}]: ${steps.slice(0, 4).join(" → ")}`
+            ).join("\n")
+            : null;
+
+        // ── Expected edges
+        const edgesSection = standardDesign.expectedEdges?.length
+            ? `Critical connections that MUST exist in the design:\n` +
+            standardDesign.expectedEdges.slice(0, 12)
+                .map((e) => `  • ${e}`)
+                .join("\n") +
+            `\nPenalise if key connections are missing or reversed.`
+            : null;
+
+        // ── Fault tolerance
+        const faultSection = standardDesign.faultToleranceMechanisms?.length
+            ? `Fault tolerance mechanisms to reward if present:\n` +
+            standardDesign.faultToleranceMechanisms.slice(0, 3)
+                .map((f) => `  • ${f}`)
+                .join("\n")
+            : null;
+
+        refSection = `## REFERENCE DESIGN (${sourceLabel})
 
 Summary: ${standardDesign.summary || ""}
+${scaleContext ? `\nSystem scale context (judge if design handles this load): ${scaleContext}` : ""}
 
 Expected components (in order):
 ${(standardDesign.components || []).slice(0, 14).map((c, i) => `  ${i + 1}. ${c}`).join("\n")}
 
 Critical must-have components: ${(standardDesign.criticalComponents || []).join(", ")}
+${edgesSection ? `\n${edgesSection}` : ""}
+${flowSection ? `\n${flowSection}` : ""}
+${faultSection ? `\n${faultSection}` : ""}
 
 Anti-patterns to detect and penalise:
 ${(standardDesign.antiPatterns || []).slice(0, 5).map((a) => `  • ${a}`).join("\n")}
@@ -276,18 +339,24 @@ ${(standardDesign.antiPatterns || []).slice(0, 5).map((a) => `  • ${a}`).join(
 Scalability decisions to reward if present:
 ${(standardDesign.scalabilityDecisions || []).slice(0, 4).map((d) => `  • ${d}`).join("\n")}
 
-INSTRUCTIONS:
-- Compare the user's design directly against this reference.
-- Penalise every missing critical component.
-- Detect and call out any anti-patterns found in the user's design.
-- Reward design decisions that align with the scalability list.
-- The comparisonWithStandard section MUST reflect this comparison.`;
-  } else {
-    refSection = `## NO REFERENCE AVAILABLE
-Evaluate "${problemTitle}" based on general distributed systems principles.`;
-  }
+EVALUATION INSTRUCTIONS:
+1. Compare user's components against the expected components list.
+2. Check user's edges against expectedEdges — missing critical connections = lower completeness score.
+3. Check if any edges are WRONG DIRECTION (e.g. DB → Client directly) — flag as anti-pattern.
+4. Penalise every missing critical component harshly.
+5. Detect anti-patterns found in the user's design and call them out.
+6. Reward scalability and fault-tolerance decisions that align with the reference.
+7. Consider the system scale — is this design capable of handling the stated load?`;
 
-  return `You are a principal software engineer at FAANG conducting a system design interview.
+    } else {
+        // No reference found and AI generation failed — evaluate on general principles
+        refSection = `## NO REFERENCE AVAILABLE
+No stored or AI-generated reference was found for "${problemTitle}".
+Evaluate based on general distributed systems principles.
+Use your knowledge of similar systems to judge what components are expected.`;
+    }
+
+    return `You are a principal software engineer at FAANG conducting a system design interview.
 
 ${refSection}
 
@@ -317,6 +386,7 @@ Return ONLY valid JSON. No markdown. No text before or after the JSON. Keep valu
   "referenceComponents": ["<c1>", "<c2>", "<c3>", "<c4>", "<c5>", "<c6>"],
   "missingCriticalComponents": ["<missing component if any>"],
   "antiPatternsFound": ["<anti-pattern found in user design if any>"],
+  "wrongConnections": ["<edge that is wrong or missing e.g. Client → DB directly>"],
   "scoringBreakdown": {
     "scalability": <1-10>,
     "reliability": <1-10>,
@@ -328,31 +398,34 @@ Return ONLY valid JSON. No markdown. No text before or after the JSON. Keep valu
     "matchedComponents": ["<component user got right>"],
     "missingFromUser": ["<standard component not in user design>"],
     "userHadExtra": ["<user component not in standard but valid>"],
+    "correctEdges": ["<connection the user drew correctly>"],
+    "wrongOrMissingEdges": ["<critical connection missing or reversed>"],
     "verdict": "<one sentence: how close to the reference standard>"
   }
 }`;
 }
 
-// ─── GET /api/designs/history ──────────────────────────────────────────────
+// GET /api/designs/history
 exports.getHistory = async (req, res) => {
-  try {
-    const attempts = await Attempt.find({ user: req.user._id })
-      .sort({ createdAt: -1 })
-      .limit(50)
-      .select("-diagramData");
-    res.json({ attempts });
-  } catch {
-    res.status(500).json({ error: "Failed to load history." });
-  }
+    try {
+        const attempts = await Attempt.find({ user: req.user._id, status: "evaluated" })
+            .sort({ createdAt: -1 })
+            .limit(50)
+            .select("-diagramData");
+        res.json({ attempts });
+    } catch {
+        console.error("getHistory", err);
+        res.status(500).json({ error: "Failed to load history." });
+    }
 };
 
-// ─── GET /api/designs/:id ──────────────────────────────────────────────────
+// GET /api/designs/:id
 exports.getAttempt = async (req, res) => {
-  try {
-    const attempt = await Attempt.findOne({ _id: req.params.id, user: req.user._id });
-    if (!attempt) return res.status(404).json({ error: "Attempt not found." });
-    res.json({ attempt });
-  } catch {
-    res.status(500).json({ error: "Failed to load attempt." });
-  }
+    try {
+        const attempt = await Attempt.findOne({ _id: req.params.id, user: req.user._id });
+        if (!attempt) return res.status(404).json({ error: "Attempt not found." });
+        res.json({ attempt });
+    } catch {
+        res.status(500).json({ error: "Failed to load attempt." });
+    }
 };

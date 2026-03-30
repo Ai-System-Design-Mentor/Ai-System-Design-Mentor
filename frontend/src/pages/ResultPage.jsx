@@ -72,9 +72,9 @@ export default function ResultPage() {
             // ALWAYS fetch from DB to get the full record (including diagramImage),
             // even if we already have partial text data from the router state.
             designsApi.getById(id)
-                .then(({ attempt }) => { 
-                    setData(attempt); 
-                    setTitle(attempt.problemTitle); 
+                .then(({ attempt }) => {
+                    setData(attempt);
+                    setTitle(attempt.problemTitle);
                 })
                 .catch(() => {
                     if (!data) navigate("/"); // Only redirect if we have absolutely no data
@@ -207,15 +207,15 @@ export default function ResultPage() {
                     <div style={{ fontWeight: 700, fontSize: 13, color: "var(--text)", padding: "8px 12px" }}>
                         Your Submitted Architecture
                     </div>
-                    <img 
-                        src={data.diagramImage} 
-                        alt="Your System Design Architecture" 
-                        style={{ 
-                            width: "100%", 
-                            borderRadius: "6px", 
+                    <img
+                        src={data.diagramImage}
+                        alt="Your System Design Architecture"
+                        style={{
+                            width: "100%",
+                            borderRadius: "6px",
                             display: "block",
                             border: "1px solid var(--border)"
-                        }} 
+                        }}
                     />
                 </div>
             )}

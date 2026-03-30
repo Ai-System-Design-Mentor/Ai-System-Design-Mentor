@@ -373,8 +373,8 @@ export default function DiagramCanvas({ onDiagramChange }) {
                     </div>
 
                     <div style={{ flex: 1 }} />
-                    <span style={{ fontSize: 11, color: "#F97316", padding: "0 8px" }}>↗ Incoming</span>
-                    <span style={{ fontSize: 11, color: "#22C55E", padding: "0 8px" }}>↙ OutGoing</span>
+                    <span style={{ fontSize: 11, color: "#22C55E", padding: "0 8px" }}>↗ Incoming</span>
+                    <span style={{ fontSize: 11, color: "#F97316", padding: "0 8px" }}>↙ OutGoing</span>
                     <span style={{ fontSize: 11, color: "var(--text-muted)", padding: "0 8px" }}>
                         {nodes.length} nodes · {edges.length} edges
                     </span>
@@ -462,7 +462,7 @@ export default function DiagramCanvas({ onDiagramChange }) {
                                 const isOutgoing = isHighlighted && selected.has(ed.from);
                                 const isIncoming = isHighlighted && selected.has(ed.to);
 
-                                const edgeColor = isOutgoing  ? "#22C55E" : isIncoming  ? "#F97316" : "#94a3b8";
+                                const edgeColor = isOutgoing  ? "#F97316" : isIncoming  ? "#22C55E" : "#94a3b8";
 
                                 const arrowId = isOutgoing ? "arrowOut"
                                 : isIncoming ? "arrowIn"
@@ -550,12 +550,12 @@ export default function DiagramCanvas({ onDiagramChange }) {
                                         <div className={s.edgeBadges}>
                                             {outgoing > 0 && (
                                                 <span className={s.badgeOut} title={`${outgoing} outgoing`}>
-                                                ↗ {outgoing}
+                                                ↙ {outgoing}
                                                 </span>
                                             )}
                                             {incoming > 0 && (
                                                 <span className={s.badgeIn} title={`${incoming} incoming`}>
-                                                ↙ {incoming}
+                                                ↗ {incoming}
                                                 </span>
                                             )}
                                         </div>

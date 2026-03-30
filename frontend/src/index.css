@@ -102,3 +102,20 @@ body {
 .slide-down {
     animation: slideDown 0.15s ease;
 }
+
+::-webkit-scrollbar {
+    width: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: #0b0f14;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #5d6d83;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #7a8ca3;
+}

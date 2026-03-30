@@ -143,9 +143,9 @@ export default function WorkspacePage() {
                     {slug && problemInfo?.difficulty && (
                         <span style={{ background: `rgba(${colors}, 0.2)`, color: `rgba(${colors})`, paddingLeft: 10, paddingRight: 10, paddingTop: 3, paddingBottom: 3, borderRadius: 7, fontSize: 10 }}>{problemInfo.difficulty}</span>
                     )}
-                    {DEFAULT_PROBLEM && DEFAULT_PROBLEM?.difficulty && (
+                    {/* {DEFAULT_PROBLEM && DEFAULT_PROBLEM?.difficulty && (
                         <span style={{ background: `rgba(${colors}, 0.2)`, color: `rgba(${colors})`, paddingLeft: 10, paddingRight: 10, paddingTop: 3, paddingBottom: 3, borderRadius: 7, fontSize: 10 }}>{DEFAULT_PROBLEM.difficulty}</span>
-                    )}
+                    )} */}
                     {loadingProblem && (
                         <span style={{ fontSize: 12, color: "var(--text-muted)" }} className="pulse">
                             Generating problem…
