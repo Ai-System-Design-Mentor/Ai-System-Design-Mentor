@@ -197,16 +197,53 @@ exports.getHint = async (req, res) => {
     }
 
     // Find the first missing critical component
+    // Aliases: maps common node names users type → canonical component keywords
+    const COMPONENT_ALIASES = {
+        "redis":         ["distributed cache", "cache"],
+        "memcached":     ["distributed cache", "cache"],
+        "kafka":         ["message queue", "queue", "pub-sub", "event bus"],
+        "rabbitmq":      ["message queue", "queue"],
+        "sqs":           ["message queue", "queue"],
+        "s3":            ["object storage", "blob storage"],
+        "cassandra":     ["nosql db", "nosql", "message store"],
+        "dynamodb":      ["nosql db", "nosql"],
+        "mongodb":       ["nosql db", "nosql"],
+        "postgres":      ["relational db", "database", "db"],
+        "postgresql":    ["relational db", "database"],
+        "mysql":         ["relational db", "database"],
+        "elasticsearch": ["search service", "search"],
+        "nginx":         ["load balancer"],
+        "haproxy":       ["load balancer"],
+        "cloudfront":    ["cdn"],
+        "websocket":     ["websocket gateway", "gateway service"],
+        "jwt":           ["auth service"],
+        "oauth":         ["auth service"],
+      };
+
+    // Resolve node type to all its possible canonical names (including aliases)
+    function resolveNodeNames(nodeType) {
+        const lower = nodeType.toLowerCase().replace(/[^a-z0-9\s]/g, "").trim();
+        const names = [lower];
+        for (const [alias, targets] of Object.entries(COMPONENT_ALIASES)) {
+          if (lower.includes(alias)) names.push(...targets);
+        }
+        return names;
+    }
+
+    const resolvedNodeNames = nodeTypes.flatMap(resolveNodeNames);
+
     const missing = criticalComponents.filter((required) => {
-      const reqLower  = required.toLowerCase();
-      const firstWord = reqLower.replace(/[^a-z\s]/g, "").trim().split(" ")[0];
-      return !nodeTypes.some(
-        (n) => n.includes(firstWord) || firstWord.includes(n.split(" ")[0])
-      );
+        const reqLower  = required.toLowerCase().replace(/[^a-z0-9\s]/g, "").trim();
+        const reqWords  = reqLower.split(" ");
+        // Match if any resolved node name covers any word of the required component
+        return !resolvedNodeNames.some((resolved) =>
+          reqWords.some((word) => word.length > 2 && resolved.includes(word)) ||
+          resolved.split(" ").some((word) => word.length > 2 && reqLower.includes(word))
+        );
     });
 
     if (missing.length > 0) {
-      const missingComponent = missing[0]; 
+      const missingComponent = missing[0];
       const key = missingComponent.toLowerCase();
       let hint;
 
@@ -327,7 +364,7 @@ STRICT RULES — NEVER BREAK THESE:
         role:    (m.role === "ai" || m.role === "assistant") ? "assistant" : "user",
         content: m.text || m.content,
       }));
-      
+
     chatMessages.push({ role: "user", content: message.trim() });
 
     try {

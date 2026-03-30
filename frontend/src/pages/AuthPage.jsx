@@ -71,7 +71,8 @@ export default function AuthPage() {
                 navigate(from, { replace: true });
             } else {
                 await register(form.username, form.email, form.password);
-                setTimeout(() => {switchMode("login")}, 500);
+                // setTimeout(() => {switchMode("login")}, 500);
+                navigate("/", { replace: true });
             }
         } catch (err) {
             setError(err.message || "Something went wrong. Please try again.");
@@ -269,7 +270,7 @@ export default function AuthPage() {
                                 value={confirmNewPw}
                                 onChange={(e) => setConfirmNewPw(e.target.value)} />
 
-                            {/* ✅ msg shown in UI */}
+                            {/*  msg shown in UI */}
                             {msg && (
                                 <p style={{ fontSize: 13, fontWeight: 500, color: msg.startsWith("✅") ? "#22c55e" : "#fca5a5" }}>
                                     {msg}
