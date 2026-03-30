@@ -19,13 +19,13 @@ export default function Dashboard() {
 
     // ─── DYNAMIC STATS CALCULATION ──────────────────────────────────────
     const totalAttempts = attempts.length;
-    
-    const bestScore = totalAttempts > 0 
-        ? Math.max(...attempts.map(a => parseFloat(a.score) || 0)).toFixed(1) 
+
+    const bestScore = totalAttempts > 0
+        ? Math.max(...attempts.map(a => parseFloat(a.score) || 0)).toFixed(1)
         : "0.0";
-        
-    const avgScore = totalAttempts > 0 
-        ? (attempts.reduce((sum, a) => sum + (parseFloat(a.score) || 0), 0) / totalAttempts).toFixed(1) 
+
+    const avgScore = totalAttempts > 0
+        ? (attempts.reduce((sum, a) => sum + (parseFloat(a.score) || 0), 0) / totalAttempts).toFixed(1)
         : "0.0";
     // ────────────────────────────────────────────────────────────────────
 
@@ -145,7 +145,7 @@ export default function Dashboard() {
                         <span style={{ fontSize: 12, color: "var(--text-muted)" }}>{totalAttempts} total</span>
                     </div>
                     <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
-                        {[...attempts].reverse().slice(0, 6).map((a, i) => {
+                        {[...attempts].reverse().map((a, i) => {
                             const sc = parseFloat(a.score) || 0;
                             const col = sc >= 8 ? "#22C55E" : sc >= 6 ? "#F97316" : "#EF4444";
                             return (
