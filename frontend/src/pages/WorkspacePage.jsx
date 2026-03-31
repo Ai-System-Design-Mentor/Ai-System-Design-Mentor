@@ -96,9 +96,9 @@ export default function WorkspacePage() {
 
     // Handle Auto Submit
     useEffect(() => {
-        if(timer <= 300){
-            timerColor = "#F97316";
-        }
+        // if(timer <= 300){
+        //     timerColor = "#F97316";
+        // }
         if(timer == 600){
             alert("You have only 10 min left, Hurry Up.");
         }
