@@ -124,6 +124,7 @@ export default function WorkspacePage() {
                 timeTaken,
                 diagramImage: base64Image, // <--- Image string is attached here
             });
+            
 
             navigate(`/result/${attemptId}`, { state: { evaluation, problemTitle } });
         } catch (error) {

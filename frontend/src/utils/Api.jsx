@@ -86,18 +86,19 @@ export const usersApi = {
 // Authentication API
 export const authApi = {
     login: (email, password) => post("/auth/login", { email, password }),
-    register: (username, email, password) => post("/auth/register", { username, email, password }),
+    registerRequest: (username, email, password) =>
+        post("/auth/register-request", { username, email, password }),
+    registerVerify: (email, otp) =>
+        post("/auth/register-verify", { email, otp }),
+    registerResend: (email) =>
+        post("/auth/register-resend", { email }),
 
-    forgotPassword: (email, currentPassword, newPassword) =>
-        fetch(`${BASE}/auth/forgot-password`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email, currentPassword, newPassword }),
-        }).then(async (res) => {
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.error || "Request failed");
-            return data;
-        }),
+    forgotPassword: (email) =>
+        post("/auth/forgot-password", { email }),
+    verifyResetOTP: (email, otp) =>
+        post("/auth/verify-otp", { email, otp }),
+    resetPassword: (resetToken, newPassword) =>
+        post("/auth/reset-password", { resetToken, newPassword }),
 };
 
 // Chat API

@@ -1,5 +1,10 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
+const {
+    sendRegistrationOTP,
+    sendPasswordResetOTP,
+    sendWelcomeEmail,
+  } = require("../utils/emailService")
 
 // creating the token
 const sign = (id) =>
@@ -16,31 +21,145 @@ const publicUser = (u) => ({
     createdAt: u.createdAt,
 });
 
-// POST /api/auth/register
-exports.register = async (req, res) => {
+const generateOTP = () => String(Math.floor(100000 + Math.random() * 900000));
+
+// POST /api/auth/register-request
+exports.registerRequest = async (req, res) => {
     try {
         const { username, email, password } = req.body;
-        if (!username || !email || !password) {
+        if (!username?.trim() || !email?.trim() || !password)
             return res.status(400).json({ error: "All fields are required." });
-        }
+          if (username.trim().length < 3)
+            return res.status(400).json({ error: "Username must be at least 3 characters." });
+          if (password.length < 6)
+            return res.status(400).json({ error: "Password must be at least 6 characters." });
+       
+        const emailLower = email.toLowerCase().trim();
+            // Block if a verified account already exists with this email or username
+        if (await User.findOne({ email: emailLower, isVerified: true }))
+            return res.status(400).json({ error: "Email is already registered." });
+          if (await User.findOne({ username: username.trim(), isVerified: true }))
+            return res.status(400).json({ error: "Username is already taken." });
 
-        if (await User.findOne({ email: email.toLowerCase() })) {
-            return res.status(400).json({ error: "Email already registered." });
-        }
-        if (await User.findOne({ username })) {
-            return res.status(400).json({ error: "Username already taken." });
-        }
+          const otp     = generateOTP();
+          const expires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
-        const user = await User.create({ username, email, password });
-        res.status(201).json({ token: sign(user._id), user: publicUser(user) });
+     // Upsert: if there is an existing unverified pending record for this email,
+    // update it. Otherwise create a new one.
+    // This handles the case where the user re-registers before verifying.
+    let pendingUser = await User.findOne({ email: emailLower, isVerified: false });
+    if (pendingUser) {
+        pendingUser.username       = username.trim();
+        pendingUser.password       = password;        // re-hashed by pre-save hook
+        pendingUser.regOTP         = otp;
+        pendingUser.regOTPExpires  = expires;
+        pendingUser.regOTPAttempts = 0;
+        await pendingUser.save();
+      } else {
+        await User.create({
+          username:       username.trim(),
+          email:          emailLower,
+          password,                      // hashed by pre-save hook
+          isVerified:     false,
+          regOTP:         otp,
+          regOTPExpires:  expires,
+          regOTPAttempts: 0,
+        });
+      }
+   
+      await sendRegistrationOTP(emailLower, otp, username.trim());
+       
+
+      res.json({
+        message: `Verification code sent to ${emailLower}. Check your inbox (and spam folder).`,
+        email:   emailLower,
+      });
     } catch (err) {
-        if (err.code === 11000) {
-            return res.status(400).json({ error: "Email or username already exists." });
-        }
-        console.error("register:", err);
-        res.status(500).json({ error: "Registration failed. Please try again." });
+      if (err.code === 11000)
+        return res.status(400).json({ error: "Email or username already exists." });
+      console.error("registerRequest:", err);
+      res.status(500).json({ error: "Registration failed. Please try again." });
     }
 };
+
+
+// POST /api/auth/register-verify
+exports.registerVerify = async (req, res) => {
+    try {
+      const { email, otp } = req.body;
+      if (!email?.trim() || !otp?.trim())
+        return res.status(400).json({ error: "Email and verification code are required." });
+   
+      const user = await User.findOne({ email: email.toLowerCase().trim(), isVerified: false })
+        .select("+regOTP +regOTPExpires +regOTPAttempts +password");
+   
+      if (!user)
+        return res.status(400).json({ error: "No pending registration found. Please sign up again." });
+   
+      if (!user.regOTP || !user.regOTPExpires || user.regOTPExpires < Date.now())
+        return res.status(400).json({ error: "Code has expired. Request a new one using Resend." });
+   
+      if ((user.regOTPAttempts || 0) >= 5)
+        return res.status(429).json({ error: "Too many failed attempts. Please sign up again." });
+   
+      if (user.regOTP !== otp.trim()) {
+        user.regOTPAttempts = (user.regOTPAttempts || 0) + 1;
+        await user.save({ validateBeforeSave: false });
+        const remaining = 5 - user.regOTPAttempts;
+        return res.status(400).json({
+          error: remaining > 0
+            ? `Invalid code. ${remaining} attempt${remaining !== 1 ? "s" : ""} remaining.`
+            : "Too many failed attempts. Please sign up again.",
+        });
+      }
+   
+  
+      user.isVerified     = true;
+      user.regOTP         = undefined;
+      user.regOTPExpires  = undefined;
+      user.regOTPAttempts = 0;
+      await user.save({ validateBeforeSave: false });
+   
+      sendWelcomeEmail(user.email, user.username).catch(() => {});
+   
+      res.status(201).json({
+        token:   sign(user._id),
+        user:    publicUser(user),
+        message: "Email verified! Your account is ready.",
+      });
+    } catch (err) {
+      console.error("registerVerify:", err);
+      res.status(500).json({ error: "Verification failed. Please try again." });
+    }
+  };
+
+  // POST /api/auth/register-resend
+exports.registerResend = async (req, res) => {
+    try {
+      const { email } = req.body;
+      if (!email?.trim())
+        return res.status(400).json({ error: "Email is required." });
+   
+      const user = await User.findOne({ email: email.toLowerCase().trim(), isVerified: false })
+        .select("+regOTP +regOTPExpires +regOTPAttempts");
+   
+      if (!user)
+        return res.status(400).json({ error: "No pending registration found for this email." });
+   
+      const otp    = generateOTP();
+      user.regOTP         = otp;
+      user.regOTPExpires  = new Date(Date.now() + 10 * 60 * 1000);
+      user.regOTPAttempts = 0;
+      await user.save({ validateBeforeSave: false });
+   
+      await sendRegistrationOTP(user.email, otp, user.username);
+      res.json({ message: "New verification code sent." });
+    } catch (err) {
+      console.error("registerResend:", err);
+      res.status(500).json({ error: "Could not resend code. Please try again." });
+    }
+  };
+   
 
 // POST /api/auth/login
 exports.login = async (req, res) => {
@@ -50,9 +169,16 @@ exports.login = async (req, res) => {
             return res.status(400).json({ error: "Email and password are required." });
         }
 
-        const user = await User.findOne({ email: email.toLowerCase() }).select("+password");
-        if (!user || !(await user.comparePassword(password))) {
-            return res.status(401).json({ error: "Invalid email or password." });
+        const user = await User.findOne({
+            email:      email.toLowerCase().trim(),
+            isVerified: true,
+          }).select("+password");
+        if (!user) {
+            return res.status(404).json({ error: "Account does not exist. Please register first." });
+        }
+        const isMatch = await user.comparePassword(password);
+        if (!isMatch) {
+            return res.status(401).json({ error: "Incorrect password." });
         }
 
         res.json({ token: sign(user._id), user: publicUser(user) });
@@ -64,40 +190,120 @@ exports.login = async (req, res) => {
 
 exports.forgotPassword = async (req, res) => {
     try {
-        const { email, currentPassword, newPassword } = req.body;
-
-        if (!email || !currentPassword || !newPassword) {
-            return res.status(400).json({ error: "All fields are required." });
-        }
-        if (newPassword.length < 6) {
-            return res.status(400).json({ error: "New password must be at least 6 characters." });
-        }
-
-        // ✅ Use .select("+password") to explicitly include password field
-        const user = await User.findOne({ email: email.toLowerCase() }).select("+password");
-        if (!user) {
-            return res.status(404).json({ error: "No account found with this email." });
-        }
-
-        // ✅ Double check password exists before comparing
-        if (!user.password) {
-            return res.status(500).json({ error: "Account error. Please contact support." });
-        }
-
-        const isMatch = await user.comparePassword(currentPassword);
-        if (!isMatch) {
-            return res.status(401).json({ error: "Current password is incorrect." });
-        }
-
-        user.password = newPassword;
-        await user.save();
-
-        res.json({ message: "Password updated successfully." });
+      const { email } = req.body;
+      if (!email?.trim())
+        return res.status(400).json({ error: "Email is required." });
+   
+      const SAFE_MSG = "If that email is registered, a reset code has been sent.";
+   
+      const user = await User.findOne({ email: email.toLowerCase().trim(), isVerified: true })
+        .select("+passwordResetOTP +passwordResetOTPExpires +passwordResetAttempts +passwordResetLockedUntil");
+   
+      if (!user) return res.json({ message: SAFE_MSG });
+   
+      const otp = generateOTP();
+      user.passwordResetOTP         = otp;
+      user.passwordResetOTPExpires  = new Date(Date.now() + 10 * 60 * 1000);
+      user.passwordResetAttempts    = 0;
+      user.passwordResetLockedUntil = undefined;
+      await user.save({ validateBeforeSave: false });
+   
+      await sendPasswordResetOTP(user.email, otp, user.username);
+      res.json({ message: SAFE_MSG });
     } catch (err) {
-        console.error("forgotPassword error:", err);
-        res.status(500).json({ error: "Server error. Please try again." });
+      console.error("forgotPassword:", err);
+      res.status(500).json({ error: "Could not send reset code. Please try again." });
     }
-};
-
+  };
+   
+  exports.verifyOTP = async (req, res) => {
+    try {
+      const { email, otp } = req.body;
+      if (!email || !otp)
+        return res.status(400).json({ error: "Email and code are required." });
+   
+      const user = await User.findOne({ email: email.toLowerCase().trim(), isVerified: true })
+        .select("+passwordResetOTP +passwordResetOTPExpires +passwordResetAttempts +passwordResetLockedUntil");
+   
+      if (!user)
+        return res.status(400).json({ error: "Invalid code." });
+   
+      if (user.passwordResetLockedUntil && user.passwordResetLockedUntil > Date.now()) {
+        const waitMin = Math.ceil((user.passwordResetLockedUntil - Date.now()) / 60000);
+        return res.status(429).json({
+          error: `Too many failed attempts. Try again in ${waitMin} minute${waitMin !== 1 ? "s" : ""}.`,
+        });
+      }
+   
+      if (!user.passwordResetOTP || user.passwordResetOTPExpires < Date.now())
+        return res.status(400).json({ error: "Code has expired. Please request a new one." });
+   
+      if (user.passwordResetOTP !== otp.trim()) {
+        user.passwordResetAttempts = (user.passwordResetAttempts || 0) + 1;
+        if (user.passwordResetAttempts >= 5) {
+          user.passwordResetLockedUntil = new Date(Date.now() + 15 * 60 * 1000);
+          user.passwordResetOTP = undefined;
+        }
+        await user.save({ validateBeforeSave: false });
+        const remaining = Math.max(0, 5 - user.passwordResetAttempts);
+        return res.status(400).json({
+          error: remaining > 0
+            ? `Invalid code. ${remaining} attempt${remaining !== 1 ? "s" : ""} remaining.`
+            : "Too many failed attempts. Account locked for 15 minutes.",
+        });
+      }
+   
+      const resetToken = jwt.sign(
+        { id: user._id, purpose: "password-reset" },
+        process.env.JWT_SECRET,
+        { expiresIn: "5m" }
+      );
+   
+      user.passwordResetOTP         = undefined;
+      user.passwordResetOTPExpires  = undefined;
+      user.passwordResetAttempts    = 0;
+      user.passwordResetLockedUntil = undefined;
+      await user.save({ validateBeforeSave: false });
+   
+      res.json({ resetToken, message: "Code verified. You may now set a new password." });
+    } catch (err) {
+      console.error("verifyOTP:", err);
+      res.status(500).json({ error: "Verification failed. Please try again." });
+    }
+  };
+   
+  exports.resetPassword = async (req, res) => {
+    try {
+      const { resetToken, newPassword } = req.body;
+      if (!resetToken || !newPassword)
+        return res.status(400).json({ error: "Token and new password are required." });
+      if (newPassword.length < 6)
+        return res.status(400).json({ error: "Password must be at least 6 characters." });
+   
+      let decoded;
+      try {
+        decoded = jwt.verify(resetToken, process.env.JWT_SECRET);
+      } catch {
+        return res.status(400).json({ error: "Reset link expired. Please request a new code." });
+      }
+   
+      if (decoded.purpose !== "password-reset")
+        return res.status(400).json({ error: "Invalid token." });
+   
+      const user = await User.findById(decoded.id).select("+password");
+      if (!user)
+        return res.status(400).json({ error: "User not found." });
+   
+      user.password = newPassword;
+      await user.save();
+   
+      res.json({ message: "Password updated. You can now log in." });
+    } catch (err) {
+      console.error("resetPassword:", err);
+      res.status(500).json({ error: "Password reset failed. Please try again." });
+    }
+  };
+ 
+  
 // GET /api/auth/me
 exports.getMe = (req, res) => res.json({ user: publicUser(req.user) });
