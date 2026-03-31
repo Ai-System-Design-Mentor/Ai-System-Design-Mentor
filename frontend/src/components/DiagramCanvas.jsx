@@ -172,7 +172,6 @@ export default function DiagramCanvas({ onDiagramChange }) {
     }
 
     function onWheel(e) {
-        e.preventDefault();
         setZoom((z) => Math.max(0.25, Math.min(3, z * (e.deltaY < 0 ? 1.1 : 0.91))));
     }
 

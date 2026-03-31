@@ -94,6 +94,19 @@ export default function WorkspacePage() {
             (problemInfo?.difficulty || DEFAULT_PROBLEM.difficulty) === "Medium" ? "234,179,8" :
                 (problemInfo?.difficulty || DEFAULT_PROBLEM.difficulty) === "Hard" ? "239,68,68" : "239,68,68";
 
+    // Handle Auto Submit
+    useEffect(() => {
+        if(timer <= 300){
+            timerColor = "#F97316";
+        }
+        if(timer == 600){
+            alert("You have only 10 min left, Hurry Up.");
+        }
+        if(timer == 1){
+            handleSubmit();
+        }
+    });
+
     async function handleSubmit() {
         if (diagramData.nodes.length < 2) {
             alert("Please add at least 2 components on your diagram before submitting.");
@@ -124,7 +137,7 @@ export default function WorkspacePage() {
                 timeTaken,
                 diagramImage: base64Image, // <--- Image string is attached here
             });
-            
+
 
             navigate(`/result/${attemptId}`, { state: { evaluation, problemTitle } });
         } catch (error) {
