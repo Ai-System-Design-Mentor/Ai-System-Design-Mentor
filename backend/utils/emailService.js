@@ -149,7 +149,7 @@ async function sendPasswordResetOTP(email, otp, username) {
   await transporter.sendMail({
     from:    process.env.EMAIL_FROM || "AI System  Design Mentor <noreply@aidesignmentor.com>",
     to:      email,
-    subject: `${otp} — Your Password Reset Code`,
+    subject: `Your Password Reset Code`,
     html,
     text: `Your AI System Design Mentor password reset code is: ${otp}\n\nThis code expires in 10 minutes.\n\nIf you didn't request this, please ignore this email.`,
   });
@@ -165,7 +165,7 @@ async function sendWelcomeEmail(email, username) {
   await transporter.sendMail({
     from:    process.env.EMAIL_FROM || "AI Design Mentor <noreply@aidesignmentor.com>",
     to:      email,
-    subject: `Welcome to AI Design Mentor, ${username}! 🏗️`,
+    subject: `Welcome to AI System Design Mentor, ${username}! 🏗️`,
     html: `
 <div style="font-family:-apple-system,sans-serif;max-width:500px;margin:0 auto;padding:32px">
   <h2 style="color:#2563EB">Welcome, ${username}! 🎉</h2>
@@ -175,9 +175,11 @@ async function sendWelcomeEmail(email, username) {
   <p style="color:#374151;line-height:1.65">
     Start with an easy problem like <strong>Design URL Shortener</strong> to get familiar
     with the canvas, then work your way up to <strong>Design YouTube</strong> or
-    <strong>Design Uber</strong>.
+    <strong>15+</strong> Advance System Design problems.
   </p>
   <p style="color:#64748B;font-size:13px;margin-top:24px">Happy designing! 🚀</p>
+  <p style="color:#64748B;font-size:13px;margin-top:24px"><strong>Regards,</strong></p>
+  <p style="color:#64748B;font-size:13px;margin-top:24px"><strong>AI System Design Mentor Team</strong></p>
 </div>`,
   }).catch(() => {}); // Non-critical — don't block registration on email failure
 }

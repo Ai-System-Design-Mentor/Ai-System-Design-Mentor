@@ -37,14 +37,14 @@ export default function Navbar() {
 // 3. SILENT REFRESH: Fetch fresh user stats whenever the URL changes
 useEffect(() => {
     setDropOpen(false); // Close dropdown on navigation
-    
+
     if (user) {
       // Quietly fetch the fresh user profile in the background
       usersApi.getProfile()
         .then((data) => {
             // Update the global auth context so the dropdown gets the new numbers!
             if (data && data.user) {
-                updateUser(data.user); 
+                updateUser(data.user);
             }
         })
         .catch(() => {});
@@ -120,39 +120,6 @@ useEffect(() => {
 
                 <div className={styles.dropDivider} />
 
-                {user && (
-                  <>
-                    <div className={styles.dropStats}>
-                      <div className={styles.dropStat}>
-                        {/* Safely fallback to 0 if attempts are missing */}
-                        <span className={styles.dropStatVal}>
-                          {user?.stats?.totalAttempts || 0}
-                        </span>
-                        <span className={styles.dropStatLabel}>Designs</span>
-                      </div>
-
-                      <div className={styles.dropStat}>
-                        {/* parseFloat ensures .toFixed(1) doesn't crash if the score is a string */}
-                        <span className={styles.dropStatVal}>
-                          {parseFloat(user?.stats?.averageScore || 0).toFixed(
-                            1
-                          )}
-                        </span>
-                        <span className={styles.dropStatLabel}>Avg Score</span>
-                      </div>
-
-                      <div className={styles.dropStat}>
-                        {/* Safely format the best score */}
-                        <span className={styles.dropStatVal}>
-                          {parseFloat(user?.stats?.bestScore || 0).toFixed(1)}
-                        </span>
-                        <span className={styles.dropStatLabel}>Best</span>
-                      </div>
-                    </div>
-                    <div className={styles.dropDivider} />
-                  </>
-                )}
-
                 <button
                   className={styles.dropItem}
                   role="menuitem"
@@ -160,10 +127,6 @@ useEffect(() => {
                 >
                   <span>👤</span> Profile
                 </button>
-                {/* <button className={styles.dropItem} role="menuitem"
-                                    onClick={() => navigate("/dashboard")}>
-                                    <span>📊</span> Dashboard
-                                </button> */}
 
                 <div className={styles.dropDivider} />
 
