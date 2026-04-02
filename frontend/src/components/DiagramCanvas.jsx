@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { DIAGRAM_COMPONENTS, getNodeStyle } from "../utils/constant";
+import { DIAGRAM_COMPONENTS, getNodeStyle } from "../utils/constants";
 import { useTheme } from "../context/ThemeContext";
 import s from "./DiagramCanvas.module.css";
 
