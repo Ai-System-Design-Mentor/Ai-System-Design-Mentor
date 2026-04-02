@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, use } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { DEFAULT_PROBLEMS } from '../utils/constant';
+import { DEFAULT_PROBLEMS } from '../utils/constants';
 import ProblemCard from '../components/ProblemCard';
 import './Home.css';
 import '../index.css';
@@ -73,7 +73,7 @@ export default function HomePage() {
                     </p>
                 ) : (
                     [...displayedProblem]
-                        .sort(() => Math.random() - 0.5)
+                        .sort()
                         .map((p) => (
                             <ProblemCard key={p.slug || p.id} problem={p} />
                         )))}

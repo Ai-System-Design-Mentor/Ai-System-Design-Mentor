@@ -6,7 +6,7 @@ import AIMentorChat from '../components/AIMentorChat';
 import './WorkSpace.css';
 import '../index.css';
 import { toPng } from 'html-to-image';
-import { DEFAULT_PROBLEMS } from '../utils/constant';
+import { DEFAULT_PROBLEMS } from '../utils/constants';
 
 export default function WorkspacePage() {
     const navigate = useNavigate();
