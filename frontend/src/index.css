@@ -12,6 +12,8 @@
     --accent-glow: rgba(37, 99, 235, 0.12);
     --danger: #ef4444;
     --bg-box: #f1f5f9;
+    --track: #637182;
+    --track-bg: #ffffff;
 }
 
 [data-theme="dark"] {
@@ -27,6 +29,8 @@
     --danger: #f87171;
     --bg-box: #1c2230;
     --bg-sidebar: #161B22;
+    --track:#5d6d83;;
+    --track-bg: #0b0f14;
 }
 
 * {
@@ -108,14 +112,15 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-    background: #0b0f14;
+    background: var(--track-bg);
+
 }
 
 ::-webkit-scrollbar-thumb {
-    background: #5d6d83;
+    background: var(--track);
     border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: #7a8ca3;
+    background: var(--track);
 }
