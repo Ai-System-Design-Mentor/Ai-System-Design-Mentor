@@ -1,5 +1,5 @@
-import React, { useState, useRef, useEffect, use } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { DEFAULT_PROBLEMS } from '../utils/constants';
 import ProblemCard from '../components/ProblemCard';
 import './Home.css';
@@ -10,6 +10,7 @@ export default function HomePage() {
     const [problems, setProblems] = useState(DEFAULT_PROBLEMS);
     const [selectedDifficulty, setSelectedDifficulty] = useState("All");
     const [showAll, setShowAll] = useState(false);
+    const [custom, setCustom] = useState("");
 
     const activity = [
         { id: 1, title: `${problems.length}+`, dis: "Design Problem" },
@@ -21,6 +22,14 @@ export default function HomePage() {
 
     const displayedProblem = showAll
         ? filteredProblems : filteredProblems.slice(0, 6);
+
+    function start(e) {
+        e.stopPropagation();
+        if (!custom.trim()) {
+            return;
+        }
+        navigate(`/workspace?custom=${encodeURIComponent(custom.trim())}`);
+    }
 
     return (
         // Home Page Component
@@ -73,7 +82,7 @@ export default function HomePage() {
                     </p>
                 ) : (
                     [...displayedProblem]
-                        .sort()
+                        .sort((a, b) => a.title.localeCompare(b.title))
                         .map((p) => (
                             <ProblemCard key={p.slug || p.id} problem={p} />
                         )))}
@@ -94,6 +103,18 @@ export default function HomePage() {
                         ▲ Show Less
                     </button>
                 )}
+            </div>
+            <div className="custom-problem">
+                <h2 className='custom_title'>✨ Design your Own System</h2>
+                <p className='custom_dis'>Enter any system - AI will generate requirements and evaluate your architecture</p>
+                <div className="custom_design_title">
+                    <input type="text" name="custom" id="custom"
+                    placeholder='eg. Design a swiggy, Design a amazon, Design a IRCTC'
+                    value={custom}
+                    onChange={(e) => setCustom(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && startCustom()}/>
+                    <button className='custombtn' onClick={start}>Start Designing →</button>
+                </div>
             </div>
         </div>
     )
