@@ -156,8 +156,9 @@ export default function WorkspacePage() {
                 <div className="workspace_title">
                     <span className='workspace_ptitle'>{problemTitle}</span>
 
-                    {customQ && <span style={{ color: "purple" }}>Custom</span>}
-                    {(slug && problemInfo?.difficulty) ? (
+                    {customQ ? (
+                        <span style={{ color: "purple", background: "rgba(128, 0, 128, 1, 0.2)", paddingLeft: 10, paddingRight: 10, paddingTop: 3, paddingBottom: 3, borderRadius: 7, fontSize: 10, }}>Custom</span>
+                    ) : slug && problemInfo?.difficulty ? (
                         <span style={{ background: `rgba(${colors}, 0.2)`, color: `rgba(${colors})`, paddingLeft: 10, paddingRight: 10, paddingTop: 3, paddingBottom: 3, borderRadius: 7, fontSize: 10 }}>{problemInfo.difficulty}</span>
                     ) : (DEFAULT_PROBLEM && DEFAULT_PDIFF &&  (
                         <span style={{ background: `rgba(${colors}, 0.2)`, color: `rgba(${colors})`, paddingLeft: 10, paddingRight: 10, paddingTop: 3, paddingBottom: 3, borderRadius: 7, fontSize: 10 }}>{DEFAULT_PDIFF}</span>

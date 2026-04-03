@@ -216,7 +216,7 @@
     padding: 7px 10px 7px 10px;
 }
 
-.dbtn:hover{
+.dbtn:hover, .custombtn:hover{
     box-shadow: 0 0 12px #3255b5;
     transform: scale(1.01);
 }
@@ -243,4 +243,46 @@
     border-color: #3255b5;
     background: rgba(50, 85, 181, 0.1);
     transform: scale(0.97);
+}
+
+.custom-problem{
+    margin-top: 20PX;
+    padding: 40px 40px 40px 40px;
+    border: 2px solid var(--border);
+    border-radius: 15px;
+    background: linear-gradient(135deg, var(--accent-glow), rgba(124, 58, 237, 0.06));
+}
+
+.custom_title{
+    font-size: 18px;
+    font-stretch: expanded;
+}
+
+.custom_dis{
+    font-size: 13px;
+    color: #888;
+    padding: 10px 10px 20px 20px;
+    font-stretch: expanded;
+}
+
+.custom_design_title{
+    display: flex;
+    gap: 15px;
+}
+
+#custom{
+    width: 80%;
+    border-radius: 10px;
+    background-color: white;
+    font-size: 15px;
+    padding-left: 30px;
+}
+
+.custombtn{
+    width: 20%;
+    border-radius: 10px;
+    padding: 15px 10px 15px 10px;
+    background-color: #1d4ed8;
+    color: white;
+    border: none;
 }
