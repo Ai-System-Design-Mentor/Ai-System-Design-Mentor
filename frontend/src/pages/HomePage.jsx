@@ -4,9 +4,11 @@ import { DEFAULT_PROBLEMS } from '../utils/constants';
 import ProblemCard from '../components/ProblemCard';
 import './Home.css';
 import '../index.css';
+import { useRef } from 'react';
 
 export default function HomePage() {
     const navigate = useNavigate();
+    const customRef = useRef(null);
     const [problems, setProblems] = useState(DEFAULT_PROBLEMS);
     const [selectedDifficulty, setSelectedDifficulty] = useState("All");
     const [showAll, setShowAll] = useState(false);
@@ -73,6 +75,10 @@ export default function HomePage() {
                     <li className={`listTag ${selectedDifficulty === "Hard" ? "active" : ""}`}
                         onClick={() => setSelectedDifficulty("Hard")}
                     > Hard </li>
+
+                    <li className='listTag' onClick={() => customRef.current?.scrollIntoView({ behavior: "smooth" })}>
+                        Custom
+                    </li>
                 </div>
             </div>
             <div className="problems">
@@ -104,7 +110,7 @@ export default function HomePage() {
                     </button>
                 )}
             </div>
-            <div className="custom-problem">
+            <div className="custom-problem" ref={customRef}>
                 <h2 className='custom_title'>✨ Design your Own System</h2>
                 <p className='custom_dis'>Enter any system - AI will generate requirements and evaluate your architecture</p>
                 <div className="custom_design_title">
