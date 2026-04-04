@@ -36,6 +36,7 @@
     font-weight: 500;
     font-size: 15px;
     color: var(--text);
+    font-stretch: expanded;
 }
 
 .links {

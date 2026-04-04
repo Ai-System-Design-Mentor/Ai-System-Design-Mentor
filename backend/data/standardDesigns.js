@@ -164,10 +164,10 @@ const STANDARD_DESIGNS = {
         ],
         criticalComponents: [
             "Location Service",
-            "Redis Geospatial Index",
+            "Distributed Cache",
             "Matching Service",
-            "WebSocket Layer",
-            "Relation DB",
+            "API Gateway",
+            "Relational DB",
         ],
         antiPatterns: [
             "HTTP polling for driver locations — too slow and too expensive at scale",
@@ -251,10 +251,10 @@ const STANDARD_DESIGNS = {
         ],
         criticalComponents: [
             "WebSocket Gateway",
-            "Cassandra Message Store",
+            "Message Store",
             "Presence Service",
-            "E2E Encryption (Key Management)",
-            "Push Notification Service",
+            "Key Management Service",
+            "Notification Service",
         ],
         antiPatterns: [
             "HTTP polling instead of WebSockets — 10x connection overhead",
@@ -340,7 +340,7 @@ const STANDARD_DESIGNS = {
             "Redirect Service",
             "Base62 ID Generator",
             "Bloom Filter",
-            "Relation DB Analytics Pipeline",
+            "Relation DB",
         ],
         antiPatterns: [
             "Using random UUID as short code — too long, ugly, no ordering",
@@ -428,11 +428,11 @@ const STANDARD_DESIGNS = {
             "Circuit breaker on celebrity pull at read time to prevent cascade",
         ],
         criticalComponents: [
-            "Timeline Service / Fan-out",
-            "Redis Timeline Cache",
-            "Relation DB",
-            "Elasticsearch",
-            "Snowflake ID Generator",
+            "Timeline Service",
+            "Cache",
+            "Message Queue",
+            "Search Service",
+            "Relational DB",
         ],
         antiPatterns: [
             "Fan-out to ALL followers at write time — 100M writes for one celebrity tweet",
@@ -631,9 +631,9 @@ const STANDARD_DESIGNS = {
         ],
         criticalComponents: [
             "Feed Service",
-            "Relation DB",
+            "Message Queue",
             "CDN",
-            "Redis Cache",
+            "Distributed Cache",
             "Object Storage",
         ],
         antiPatterns: [
@@ -731,10 +731,10 @@ const STANDARD_DESIGNS = {
         ],
         criticalComponents: [
             "Gateway Service",
-            "Cassandra",
+            "NoSQL DB",
             "Message Queue",
-            "WebRTC SFU",
-            "Redis",
+            "Voice / Video Service",
+            "Distributed Cache",
         ],
         antiPatterns: [
             "Storing messages in a relational DB — cannot handle write throughput at scale",
@@ -833,8 +833,8 @@ const STANDARD_DESIGNS = {
             "Git Service",
             "Repository Storage",
             "Auth Service",
-            "Elasticsearch",
-            "Relation DB",
+            "Search Service",
+            "Message Queue",
         ],
         antiPatterns: [
             "Storing Git pack files in a relational DB — wrong tool for binary blobs",
@@ -1334,11 +1334,11 @@ const STANDARD_DESIGNS = {
             "Third-party API failover — e.g. fall back from Twilio to SNS for SMS",
         ],
         criticalComponents: [
-            "Relation DB (Priority Queues)",
+            "Message Queue",
             "Rate Limiter",
             "User Preference Service",
-            "Delivery Tracker",
-            "Retry Service (DLQ)",
+            "Delivery Tracker Service",
+            "Retry Service",
         ],
         antiPatterns: [
             "Synchronous third-party API calls on the send path — blocks producers",
@@ -1447,6 +1447,8 @@ const STANDARD_DESIGNS = {
             "Idempotent counter operations — Redis INCR is safe to retry",
         ],
         criticalComponents: [
+            "Distributed Cache",
+            "Rate Limiter Service",
             "Rule Service",
             "API Gateway",
             "Monitoring",
@@ -1461,45 +1463,6 @@ const STANDARD_DESIGNS = {
             "Rate limiting only by IP — easy to bypass with IP rotation",
             "Synchronous rule updates — brief inconsistency window between servers",
         ],
-        algorithms: {
-            tokenBucket: {
-                description: "Tokens added at fixed rate up to bucket capacity. Each request consumes one token.",
-                pros: ["Allows bursting up to bucket capacity", "Smooth average rate", "Simple to implement"],
-                cons: ["Slightly complex state (tokens + last refill)", "Burst can still cause downstream issues"],
-                bestFor: "APIs that want to allow short bursts but enforce average rate",
-            },
-            slidingWindow: {
-                description: "Tracks exact timestamps of recent requests in a sorted set. Most accurate algorithm.",
-                pros: ["No boundary burst problem", "Most accurate", "Prevents boundary exploitation"],
-                cons: ["Higher Redis memory usage (stores all timestamps)", "Slightly more CPU per request"],
-                bestFor: "High-security endpoints like /login, /payment where accuracy matters",
-            },
-            fixedWindow: {
-                description: "Counts requests per fixed time bucket. Simple and low-memory.",
-                pros: ["Lowest memory usage", "Simplest implementation", "Fast"],
-                cons: ["Boundary burst: 2x requests possible at window boundary", "Inaccurate at edges"],
-                bestFor: "Low-sensitivity APIs where boundary bursts are acceptable",
-            },
-            leakyBucket: {
-                description: "Requests added to a queue processed at fixed rate. Smooths traffic like water through a leaky bucket.",
-                pros: ["Perfectly smooth output rate", "Protects downstream services"],
-                cons: ["Adds latency (requests wait in queue)", "Queue fills up under burst — requests dropped or delayed"],
-                bestFor: "Smoothing traffic to downstream services that cannot handle bursts",
-            },
-            slidingWindowCounter: {
-                description: "Hybrid: uses two fixed window counters to approximate sliding window with low memory.",
-                pros: ["Near-accurate without storing all timestamps", "Low memory", "Fast"],
-                cons: ["Approximate — small inaccuracy at boundaries"],
-                bestFor: "Production systems needing accuracy + low memory (most common choice)",
-            },
-        },
-        responseHeaders: {
-            "X-RateLimit-Limit": "Maximum requests allowed in the window",
-            "X-RateLimit-Remaining": "Requests remaining in current window",
-            "X-RateLimit-Reset": "Unix timestamp when window resets",
-            "X-RateLimit-Policy": "Algorithm used (optional)",
-            "Retry-After": "Seconds until client can retry (on 429)",
-        },
         estimatedScale: {
             requestsPerSecond: "10M+",
             latencyAdded: "< 1ms p99",

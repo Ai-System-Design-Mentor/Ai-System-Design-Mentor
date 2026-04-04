@@ -4,6 +4,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { authApi } from "../utils/Api";
 import "./AuthPage.css";
+import { GoogleLogin } from "@react-oauth/google";
 
 /**
  * AuthPage — 6 modes in one page:
@@ -36,7 +37,7 @@ export default function AuthPage() {
     const [confirmPw, setConfirmPw] = useState("");
     const [resetToken, setResetToken] = useState("");
 
-    const { login: ctxLogin, updateUser } = useAuth();
+    const { login: ctxLogin, updateUser, googleLogin: ctxGoogleLogin } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
     const from = location.state?.from?.pathname || "/";
@@ -375,11 +376,25 @@ export default function AuthPage() {
                                 <div style={{ flex: 1, height: 1, background: "var(--border)" }} />
                             </div>
                             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-                                {[{ icon: "🌐", label: "Google" }, { icon: "💻", label: "GitHub" }].map(({ icon, label }) => (
-                                    <button key={label} style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 9, padding: "11px", borderRadius: 10, border: "1.5px solid var(--border)", background: "var(--bg-card)", color: "var(--text)", fontFamily: "var(--font-main)", fontSize: 13, fontWeight: 500, cursor: "pointer" }}>
-                                        <span style={{ fontSize: 16 }}>{icon}</span> {label}
-                                    </button>
-                                ))}
+                                <GoogleLogin
+                                    onSuccess={async (credentialResponse) => {
+                                        setLoading(true);
+                                        setError("");
+                                        try {
+                                            await ctxGoogleLogin(credentialResponse.credential);
+                                            navigate(from, { replace: true });
+                                        } catch (err) {
+                                            setError(err.message || "Google Login failed.");
+                                        }
+                                        setLoading(false);
+                                    }}
+                                    onError={() => {
+                                        setError("Google Authentication failed.");
+                                    }}
+                                />
+                                <button key="Github" type="button" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 9, padding: "11px", borderRadius: 10, border: "1.5px solid var(--border)", background: "var(--bg-card)", color: "var(--text)", fontFamily: "var(--font-main)", fontSize: 13, fontWeight: 500, cursor: "pointer", height: "46px" }}>
+                                    <span style={{ fontSize: 16 }}>💻</span> Github
+                                </button>
                             </div>
                         </>
                     )}

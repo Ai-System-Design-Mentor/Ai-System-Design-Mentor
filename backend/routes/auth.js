@@ -2,13 +2,14 @@ const express = require("express");
 const router  = express.Router();
 const {  registerRequest, registerVerify, registerResend,
     login, getMe,
-    forgotPassword, verifyOTP, resetPassword, } = require("../controllers/authController");
+    forgotPassword, verifyOTP, resetPassword, googleLogin } = require("../controllers/authController");
 const { protect } = require("../middleware/auth");
 
 router.post("/register-request", registerRequest); // Step 1: validate + send OTP
 router.post("/register-verify",  registerVerify);  // Step 2: verify OTP → JWT
 router.post("/register-resend",  registerResend);  // Resend OTP
 router.post("/login",    login);
+router.post("/google",   googleLogin);
 router.get("/me", protect, getMe);
 
 router.post("/forgot-password", forgotPassword); // Step 1: send OTP

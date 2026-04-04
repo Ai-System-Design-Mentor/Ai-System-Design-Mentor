@@ -55,6 +55,22 @@ export function AuthProvider({ children }) {
         return data.user;
     }
 
+    // ── Google Login ──────────────────────────────────────
+    async function googleLogin(token) {
+        const res = await fetch(`${API}/auth/google`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ token }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Google Login failed");
+
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("user", JSON.stringify(data.user));
+        setUser(data.user);
+        return data.user;
+    }
+
     // ── Logout ────────────────────────────────────────────
     function logout() {
         localStorage.removeItem("token");
@@ -78,6 +94,7 @@ export function AuthProvider({ children }) {
             user,
             loading,
             login,
+            googleLogin,
             register,
             logout,
             updateUser,

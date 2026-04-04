@@ -9,7 +9,6 @@ const SEED_PROBLEMS = [
         difficulty: "Medium",
         estimatedTime: 60,
         tags: ["CDN", "Streaming", "Storage", "Video"],
-        description: "Design a video streaming platform like YouTube that supports uploading, storing, and streaming videos to millions of users worldwide.",
         requirements: ["Users can upload videos up to 4K resolution", "Support adaptive bitrate streaming", "Video recommendations feed", "Comments, likes, and subscriptions", "Full-text video search"],
         constraints: ["500 hours of video uploaded every minute", "2 billion logged-in users per month", "1 billion hours watched daily"],
         hints: ["Where do the raw video files live after upload?", "How does the video get to a user in Tokyo with minimal buffering?", "Transcoding takes time — should upload block until it's done?"],
@@ -275,7 +274,47 @@ const SEED_PROBLEMS = [
             "Rate limiting?"
         ],
         standardDesign: STANDARD_DESIGNS["notification-system"]
-    }
+    },
+    {
+        slug: "github",
+        title: "Design GitHub",
+        difficulty: "Hard",
+        estimatedTime: 60,
+        icon: "",
+        color: "#181717",
+        tags: [
+          "Distributed Systems",
+          "Version Control",
+          "Storage",
+          "Collaboration",
+          "Scaling"
+        ],
+        description:
+          "Design a platform like GitHub that allows developers to host repositories, collaborate on code, and manage version control at scale.",
+        requirements: [
+          "Create and manage repositories",
+          "Push and pull code changes",
+          "Branching and merging",
+          "View commit history",
+          "Collaborate via pull requests",
+          "Access control (public/private repos)"
+        ],
+        constraints: [
+          "Handle millions of repositories",
+          "Support large file storage efficiently",
+          "Low latency for read/write operations",
+          "High availability and consistency",
+          "Efficient diff and version tracking"
+        ],
+        hints: [
+          "How does Git store data internally (blobs, trees, commits)?",
+          "How would you design distributed storage?",
+          "How to handle large repositories efficiently?",
+          "How to manage concurrent edits (merge conflicts)?",
+          "How to scale read-heavy workloads?"
+        ],
+        standardDesign: STANDARD_DESIGNS["github"]
+      }
 ];
 
 module.exports = SEED_PROBLEMS;

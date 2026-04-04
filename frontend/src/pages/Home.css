@@ -190,6 +190,7 @@
 
 .listTag{
     border-radius: 8px;
+    cursor: pointer;
 }
 
 .listTag.hover{
