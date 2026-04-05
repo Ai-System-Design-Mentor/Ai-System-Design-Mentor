@@ -8,7 +8,6 @@ import App from "./App";
 import "./index.css";
 
 const CLIENT = import.meta.env.VITE_CLIENT_ID;
-console.log(import.meta.env.VITE_CLIENT_ID);
 
 ReactDOM.createRoot(document.getElementById("root")).render(
     <React.StrictMode>
