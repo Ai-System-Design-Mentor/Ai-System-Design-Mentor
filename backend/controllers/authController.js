@@ -364,6 +364,85 @@ exports.googleLogin = async (req, res) => {
     }
   };
 
+  // POST /api/auth/github
+exports.githubLogin = async (req, res) => {
+  try {
+      const { code } = req.body;
+      if (!code) return res.status(400).json({ error: "No code provided" });
+
+      // 1. Exchange code for Access Token
+      const tokenResponse = await fetch("https://github.com/login/oauth/access_token", {
+          method: "POST",
+          headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json",
+          },
+          body: JSON.stringify({
+              client_id: process.env.GITHUB_CLIENT_ID,
+              client_secret: process.env.GITHUB_CLIENT_SECRET,
+              code,
+          }),
+      });
+      
+      const tokenData = await tokenResponse.json();
+      if (tokenData.error) return res.status(400).json({ error: "GitHub authorization failed" });
+
+      const accessToken = tokenData.access_token;
+      if (!accessToken) {
+        console.error("GitHub Token Error Data:", tokenData);
+        return res.status(400).json({ error: "Failed to get access token from GitHub." });
+    }
+
+      // 2. Fetch User Profile from GitHub
+      const userResponse = await fetch("https://api.github.com/user", {
+          headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      const githubUser = await userResponse.json();
+
+      // 3. Fetch User Emails (GitHub hides emails by default, so we need a separate request)
+      const emailResponse = await fetch("https://api.github.com/user/emails", {
+          headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      const emails = await emailResponse.json();
+      if (!Array.isArray(emails)) {
+        console.error("GitHub Emails Error:", emails);
+        return res.status(400).json({ error: "Could not fetch emails from GitHub." });
+    }
+      
+      // Find the primary, verified email
+      const primaryEmailObj = emails.find((e) => e.primary && e.verified);
+      if (!primaryEmailObj) {
+          return res.status(400).json({ error: "No verified email found on your GitHub account" });
+      }
+      
+      const email = primaryEmailObj.email.toLowerCase();
+
+      // 4. Find or Create User in MongoDB
+      let user = await User.findOne({ email });
+
+      if (!user) {
+          // Create a new user (bypass standard password/OTP since GitHub verified them)
+          user = await User.create({
+              username: githubUser.login || `user_${Date.now()}`,
+              email: email,
+              password: crypto.randomBytes(16).toString("hex"), // Random secure password they will never use
+              isVerified: true, // Auto-verify since GitHub verified the email
+          });
+      } else if (!user.isVerified) {
+          // If they started registering manually but switched to GitHub, verify them!
+          user.isVerified = true;
+          await user.save();
+      }
+
+      // 5. Send back JWT
+      res.json({ token: sign(user._id), user: publicUser(user) });
+
+  } catch (err) {
+      console.error("GitHub Login Error:", err);
+      res.status(500).json({ error: "Server error during GitHub authentication." });
+  }
+};
+
 
 // GET /api/auth/me
 exports.getMe = (req, res) => res.json({ user: publicUser(req.user) });
