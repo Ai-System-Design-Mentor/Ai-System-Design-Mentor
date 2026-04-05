@@ -70,6 +70,21 @@ export function AuthProvider({ children }) {
         setUser(data.user);
         return data.user;
     }
+    // ── GitHub Login ──────────────────────────────────────
+    async function githubLogin(code) {
+        const res = await fetch(`${API}/auth/github`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ code }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "GitHub Login failed");
+
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("user", JSON.stringify(data.user));
+        setUser(data.user);
+        return data.user;
+    }
 
     // ── Logout ────────────────────────────────────────────
     function logout() {
@@ -95,6 +110,7 @@ export function AuthProvider({ children }) {
             loading,
             login,
             googleLogin,
+            githubLogin,
             register,
             logout,
             updateUser,

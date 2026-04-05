@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState,useEffect,useRef } from "react";
 import { motion } from "framer-motion";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
@@ -37,10 +37,33 @@ export default function AuthPage() {
     const [confirmPw, setConfirmPw] = useState("");
     const [resetToken, setResetToken] = useState("");
 
-    const { login: ctxLogin, updateUser, googleLogin: ctxGoogleLogin } = useAuth();
+    const { login: ctxLogin, updateUser, googleLogin: ctxGoogleLogin,githubLogin } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
     const from = location.state?.from?.pathname || "/";
+    const hasProcessedCode = useRef(false);
+    // ── Catch GitHub Callback ──
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        const code = params.get("code");
+        
+        if (code && !hasProcessedCode.current) {
+            hasProcessedCode.current = true;
+            window.history.replaceState({}, document.title, window.location.pathname);
+            setLoading(true);
+            githubLogin(code)
+                .then(() => {
+                    // Clean up the URL so the code disappears
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                    navigate(from, { replace: true });
+                })
+                .catch((err) => {
+                    setError(err.message || "GitHub Authentication failed.");
+                    setLoading(false);
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                });
+        }
+    }, [githubLogin, navigate, from]);
 
     // ── Helpers ───────────────────────────────────────────────────────────────
     function goTo(m) {
@@ -81,6 +104,12 @@ export default function AuthPage() {
         }
         setLoading(false);
     }
+    const handleGithubRedirect = () => {
+        // Use your actual Client ID here!
+        const GITHUB_CLIENT_ID = import.meta.env.VITE_GITHUB_CLIENT_ID || "YOUR_CLIENT_ID_HERE";
+        const redirectUri = `${window.location.origin}/login`; // Points back to this page
+        window.location.href = `https://github.com/login/oauth/authorize?client_id=${GITHUB_CLIENT_ID}&redirect_uri=${redirectUri}&scope=user:email`;
+    };
 
     // ── REGISTER step 1 ───────────────────────────────────────────────────────
     async function handleRegisterRequest(e) {
@@ -392,7 +421,7 @@ export default function AuthPage() {
                                         setError("Google Authentication failed.");
                                     }}
                                 />
-                                <button key="Github" type="button" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 9, padding: "11px", borderRadius: 10, border: "1.5px solid var(--border)", background: "var(--bg-card)", color: "var(--text)", fontFamily: "var(--font-main)", fontSize: 13, fontWeight: 500, cursor: "pointer", height: "46px" }}>
+                                <button key="Github" type="button" onClick={handleGithubRedirect} style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 9, padding: "11px", borderRadius: 10, border: "1.5px solid var(--border)", background: "var(--bg-card)", color: "var(--text)", fontFamily: "var(--font-main)", fontSize: 13, fontWeight: 500, cursor: "pointer", height: "46px" }}>
                                     <span style={{ fontSize: 16 }}>💻</span> Github
                                 </button>
                             </div>
