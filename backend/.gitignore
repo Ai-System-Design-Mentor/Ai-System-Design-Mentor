@@ -6,6 +6,8 @@ node_modules/
 # ── Environment Variables ────────────────────────
 .env
 .env.local
+.env.*
+!.env.example
 .env.development
 .env.production
 .env.test
